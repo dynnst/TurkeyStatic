@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Su� �nleme - G�nl�k Veri Giri� Sistemi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background-color: var(--primary-color);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+            font-size: 1.5rem;
+        }
+
+        .container-main {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border-radius: 10px 10px 0 0;
+            padding: 20px;
+            font-weight: 600;
+            border: none;
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            padding: 10px 15px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+        .form-control::placeholder {
+            color: #999;
+        }
+
+        .btn-primary, .btn-success, .btn-danger {
+            border-radius: 8px;
+            padding: 10px 25px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--secondary-color);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            border: none;
+        }
+
+        .btn-success:hover {
+            background-color: #229954;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .nav-tabs {
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .nav-tabs .nav-link {
+            color: var(--primary-color);
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-weight: 500;
+        }
+
+        .nav-tabs .nav-link:hover {
+            border-bottom-color: var(--secondary-color);
+            color: var(--secondary-color);
+        }
+
+        .nav-tabs .nav-link.active {
+            border-bottom-color: var(--secondary-color);
+            color: var(--secondary-color);
+            background-color: transparent;
+        }
+
+        .tab-content {
+            padding-top: 20px;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #2980b9 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .summary-card h5 {
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .summary-card .summary-value {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .alert {
+            border-radius: 8px;
+            border: none;
+        }
+
+        .date-picker-wrapper {
+            position: relative;
+        }
+
+        .date-picker-wrapper input {
+            padding-left: 40px;
+        }
+
+        .date-picker-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--secondary-color);
+        }
+
+        .row-form-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .spinner {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+        }
+
+        .spinner.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            position: fixed;
+            top: 0;
+            left: 0;
+            border-radius: 0;
+        }
+
+        .table-responsive {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        table {
+            margin-bottom: 0;
+        }
+
+        thead {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .pagination {
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .badge {
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-shield-lock"></i> Antalya Gazipa�a Havaliman� Emniyet �ube
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#veriGirisi">Veri Giri�</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#raporlar">Raporlar</a>
+                    </li>
+                    <li class="nav-item">
+                        <span class="nav-link" id="kullaniciAdi"></span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container-main">
+        <!-- Alert Messages -->
+        <div id="alertContainer"></div>
+
+        <!-- Veri Giri� Kart� -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-pencil-square"></i> Su� �nleme Biriminin G�nl�k Veri Giri� Formu
+            </div>
+            <div class="card-body">
+                <!-- Tarih ve Birim Se�imi -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label for="entryDate" class="form-label">
+                            <i class="bi bi-calendar-event"></i> Veri Giri� Tarihi
+                        </label>
+                        <div class="date-picker-wrapper">
+                            <i class="bi bi-calendar-event date-picker-icon"></i>
+                            <input type="date" class="form-control" id="entryDate" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="unitSelect" class="form-label">
+                            <i class="bi bi-building"></i> Birim Se�in
+                        </label>
+                        <select class="form-select" id="unitSelect" required>
+                            <option value="">Birim Se�iniz...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tab Navigation -->
+                <ul class="nav nav-tabs mb-4" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="crimeTab" data-bs-toggle="tab" data-bs-target="#crimeContent" type="button">
+                            <i class="bi bi-exclamation-circle"></i> Ceraim �statistikleri
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="queryTab" data-bs-toggle="tab" data-bs-target="#queryContent" type="button">
+                            <i class="bi bi-search"></i> Sorgu �statistikleri
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="activityTab" data-bs-toggle="tab" data-bs-target="#activityContent" type="button">
+                            <i class="bi bi-activity"></i> Arama/Yakalama
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Tab Contents -->
+                <div class="tab-content">
+                    <!-- Crime Statistics Tab -->
+                    <div class="tab-pane fade show active" id="crimeContent" role="tabpanel">
+                        <h5 class="mb-4">Ceraim (Olay/Su�) �statistikleri</h5>
+                        <form id="crimeForm">
+                            <div class="row-form-group">
+                                <div>
+                                    <label for="crimeType" class="form-label">Su� T�r�*</label>
+                                    <input type="text" class="form-control" id="crimeType" placeholder="�rn: Uyu�turucu, H�rs�zl�k" required>
+                                </div>
+                                <div>
+                                    <label for="crimeCode" class="form-label">Su� Kodu</label>
+                                    <input type="text" class="form-control" id="crimeCode" placeholder="�rn: TCK 188">
+                                </div>
+                            </div>
+                            <div class="row-form-group">
+                                <div>
+                                    <label for="casesRequiringFollowUp" class="form-label">Takibi Gereken Olay Say�s�</label>
+                                    <input type="number" class="form-control" id="casesRequiringFollowUp" min="0" value="0">
+                                </div>
+                                <div>
+                                    <label for="crimesSuspectCount" class="form-label">��pheli Say�s�</label>
+                                    <input type="number" class="form-control" id="crimesSuspectCount" min="0" value="0">
+                                </div>
+                                <div>
+                                    <label for="crimesArrestedCount" class="form-label">Tutuklanan Say�s�</label>
+                                    <input type="number" class="form-control" id="crimesArrestedCount" min="0" value="0">
+                                </div>
+                                <div>
+                                    <label for="crimesJudicialControl" class="form-label">Adli Kontrol Al�nan</label>
+                                    <input type="number" class="form-control" id="crimesJudicialControl" min="0" value="0">
+                                </div>
+                            </div>
+                            <div>
+                                <label for="crimesNotes" class="form-label">Notlar</label>
+                                <textarea class="form-control" id="crimesNotes" rows="3" placeholder="Ek bilgi..."></textarea>
+                            </div>
+                            <div class="action-buttons">
+                                <button type="button" class="btn btn-secondary" id="crimeClearBtn">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Temizle
+                                </button>
+                                <button type="button" class="btn btn-success" id="crimeSaveBtn">
+                                    <i class="bi bi-check-circle"></i> Kaydet
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Crime Statistics Table -->
+                        <hr class="my-4">
+                        <h6 class="mb-3">Kaydedilen Ceraim �statistikleri</h6>
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="crimeTable">
+                                <thead>
+                                    <tr>
+                                        <th>Su� T�r�</th>
+                                        <th>Su� Kodu</th>
+                                        <th>��pheli</th>
+                                        <th>Tutuklanan</th>
+                                        <th>Tarih</th>
+                                        <th>��lemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="crimeTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Query Statistics Tab -->
+                    <div class="tab-pane fade" id="queryContent" role="tabpanel">
+                        <h5 class="mb-4">GBT/YTS Sorgu �statistikleri</h5>
+                        <form id="queryForm">
+                            <div class="row-form-group">
+                                <div>
+                                    <label for="queryShift" class="form-label">Vardia/B�ro*</label>
+                                    <select class="form-select" id="queryShift" required>
+                                        <option value="">Se�iniz...</option>
+                                        <option value="1. Vardia">1. Vardia</option>
+                                        <option value="2. Vardia">2. Vardia</option>
+                                        <option value="3. Vardia">3. Vardia</option>
+                                        <option value="�dari B�ro">�dari B�ro</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="queryOperationType" class="form-label">��lem T�r�</label>
+                                    <select class="form-select" id="queryOperationType">
+                                        <option value="G�nl�k Takibat">G�nl�k Takibat</option>
+                                        <option value="Ayl�k Takibat">Ayl�k Takibat</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row-form-group">
+                                <div>
+                                    <label for="queryPersonQueried" class="form-label">Sorgulanan �ah�s Say�s�</label>
+                                    <input type="number" class="form-control" id="queryPersonQueried" min="0" value="0">
+                                </div>
+                                <div>
+                                    <label for="queryPersonArrestedSearched" class="form-label">Yakalanan/Aranan �ah�s Say�s�</label>
+                                    <input type="number" class="form-control" id="queryPersonArrestedSearched" min="0" value="0">
+                                </div>
+                            </div>
+                            <div>
+                                <label for="queryNotes" class="form-label">Notlar</label>
+                                <textarea class="form-control" id="queryNotes" rows="3" placeholder="Ek bilgi..."></textarea>
+                            </div>
+                            <div class="action-buttons">
+                                <button type="button" class="btn btn-secondary" id="queryClearBtn">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Temizle
+                                </button>
+                                <button type="button" class="btn btn-success" id="querySaveBtn">
+                                    <i class="bi bi-check-circle"></i> Kaydet
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Query Statistics Table -->
+                        <hr class="my-4">
+                        <h6 class="mb-3">Kaydedilen Sorgu �statistikleri</h6>
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="queryTable">
+                                <thead>
+                                    <tr>
+                                        <th>Vardia/B�ro</th>
+                                        <th>Sorgulanan</th>
+                                        <th>Yakalanan/Aranan</th>
+                                        <th>��lem T�r�</th>
+                                        <th>Tarih</th>
+                                        <th>��lemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="queryTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Crime Prevention Activity Tab -->
+                    <div class="tab-pane fade" id="activityContent" role="tabpanel">
+                        <h5 class="mb-4">Arama/Yakalama Faaliyetleri</h5>
+                        <form id="activityForm">
+                            <div class="row-form-group">
+                                <div>
+                                    <label for="activityWarrantSource" class="form-label">Yakalama Emri Kayna��</label>
+                                    <select class="form-select" id="activityWarrantSource">
+                                        <option value="GBT">GBT Kaynakl�</option>
+                                        <option value="UAP">UAP Kaynakl�</option>
+                                        <option value="�cra">�cra Kaynakl�</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="activityWarrantCount" class="form-label">Yakalama Emri Say�s�</label>
+                                    <input type="number" class="form-control" id="activityWarrantCount" min="0" value="0">
+                                </div>
+                            </div>
+                            <div class="row-form-group">
+                                <div>
+                                    <label for="activityApprehendedCount" class="form-label">Yakalanan Say�s�</label>
+                                    <input type="number" class="form-control" id="activityApprehendedCount" min="0" value="0">
+                                </div>
+                                <div>
+                                    <label for="activityArrestedCount" class="form-label">Tutukland�</label>
+                                    <input type="number" class="form-control" id="activityArrestedCount" min="0" value="0">
+                                </div>
+                            </div>
+                            <div>
+                                <label for="activityLocation" class="form-label">Yakalama Yeri/Noktas�</label>
+                                <input type="text" class="form-control" id="activityLocation" placeholder="�rn: Havaliman�, �ehir Merkezi">
+                            </div>
+                            <div>
+                                <label for="activityNotes" class="form-label">Notlar</label>
+                                <textarea class="form-control" id="activityNotes" rows="3" placeholder="Ek bilgi..."></textarea>
+                            </div>
+                            <div class="action-buttons">
+                                <button type="button" class="btn btn-secondary" id="activityClearBtn">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Temizle
+                                </button>
+                                <button type="button" class="btn btn-success" id="activitySaveBtn">
+                                    <i class="bi bi-check-circle"></i> Kaydet
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Activity Table -->
+                        <hr class="my-4">
+                        <h6 class="mb-3">Kaydedilen Arama/Yakalama Faaliyetleri</h6>
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="activityTable">
+                                <thead>
+                                    <tr>
+                                        <th>Yakalama Emri Kayna��</th>
+                                        <th>Yakalanan</th>
+                                        <th>Tutukland�</th>
+                                        <th>Yer/Nokta</th>
+                                        <th>Tarih</th>
+                                        <th>��lemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="activityTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="row mt-4">
+            <div class="col-md-3">
+                <div class="summary-card">
+                    <h5>Toplam Su�lar</h5>
+                    <div class="summary-value" id="totalCrimes">0</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="summary-card">
+                    <h5>Toplam ��pheliler</h5>
+                    <div class="summary-value" id="totalSuspects">0</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="summary-card">
+                    <h5>Toplam Tutuklama</h5>
+                    <div class="summary-value" id="totalArrested">0</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="summary-card">
+                    <h5>Toplam Sorgulama</h5>
+                    <div class="summary-value" id="totalQueries">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Spinner -->
+    <div class="spinner" id="loadingSpinner">
+        <div class="spinner-border text-light" role="status">
+            <span class="visually-hidden">Y�kleniyor...</span>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/Scripts/data-entry.js"></script>
+</body>
+</html>
