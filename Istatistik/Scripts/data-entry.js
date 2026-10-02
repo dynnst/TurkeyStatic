@@ -49,18 +49,41 @@ function populateUnitSelect(units) {
     const select = document.getElementById('unitSelect');
     select.innerHTML = '<option value="">Birim Seçiniz...</option>';
 
-    units.forEach(unit => {
-        const option = document.createElement('option');
-        option.value = unit.UnitId;
-        option.textContent = unit.UnitName;
-        select.appendChild(option);
-    });
+    function populateUnitSelect(units) {
+        const select = document.getElementById('unitSelect');
+        select.innerHTML = '<option value="">Birim Seçiniz...</option>';
 
-    // Select first unit by default
-    if (units.length > 0) {
-        select.value = units[0].UnitId;
-        currentUnit = units[0];
-        loadDataForCurrentDate();
+        // Admin deðilse sadece kendi birimini göster
+        if (userRole !== "Admin") {
+            const userUnit = units.find(u => u.UnitId === userUnitId);
+            if (userUnit) {
+                const option = document.createElement('option');
+                option.value = userUnit.UnitId;
+                option.textContent = userUnit.UnitName;
+                select.appendChild(option);
+
+                // Otomatik olarak kendi birimini seç
+                select.value = userUnit.UnitId;
+                currentUnit = userUnit.UnitId;
+                select.disabled = true; // Admin deðilse birim seçimini kapalý yap
+                loadDataForCurrentDate();
+            }
+        } else {
+            // Admin ise tüm birimleri göster
+            units.forEach(unit => {
+                const option = document.createElement('option');
+                option.value = unit.UnitId;
+                option.textContent = unit.UnitName;
+                select.appendChild(option);
+            });
+
+            // Admin için ilk birim seçili kalsýn
+            if (units.length > 0) {
+                select.value = units[0].UnitId;
+                currentUnit = units[0].UnitId;
+                loadDataForCurrentDate();
+            }
+        }
     }
 }
 
