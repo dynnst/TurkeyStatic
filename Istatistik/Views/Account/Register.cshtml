@@ -1,0 +1,215 @@
+@{
+    ViewBag.Title = "Kayýt Ol";
+    var units = ViewBag.Units as dynamic;
+}
+
+<style>
+    :root {
+        --primary-color: #2c3e50;
+        --secondary-color: #3498db;
+        --success-color: #27ae60;
+        --danger-color: #e74c3c;
+    }
+
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 40px 0;
+    }
+
+    .register-container {
+        width: 100%;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .register-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+    }
+
+    .register-card .card-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        padding: 30px 20px;
+        text-align: center;
+        border: none;
+    }
+
+    .register-card .card-header h3 {
+        margin: 0;
+        font-weight: 700;
+        font-size: 1.5rem;
+    }
+
+    .register-card .card-header p {
+        margin: 10px 0 0 0;
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+
+    .register-card .card-body {
+        padding: 30px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-control, .form-select {
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 12px 15px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--secondary-color);
+        box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+    }
+
+    .form-control::placeholder {
+        color: #999;
+    }
+
+    .row-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+
+    .btn-register {
+        background: linear-gradient(135deg, var(--success-color) 0%, #229954 100%);
+        border: none;
+        color: white;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+    .btn-register:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(39, 174, 96, 0.4);
+    }
+
+    .alert {
+        border-radius: 8px;
+        border: none;
+        margin-bottom: 20px;
+    }
+
+    .login-link {
+        text-align: center;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #e0e0e0;
+    }
+
+    .login-link a {
+        color: var(--secondary-color);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .login-link a:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<div class="register-container">
+    <div class="card register-card">
+        <div class="card-header">
+            <h3>
+                <i class="bi bi-person-plus"></i> Yeni Hesap Oluþtur
+            </h3>
+            <p>Sistem Kaydý</p>
+        </div>
+        <div class="card-body">
+            @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+            {
+                <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-circle"></i> @ViewBag.ErrorMessage
+                </div>
+            }
+
+            @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { @class = "register-form" }))
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="bi bi-person"></i> Adý Soyadý *
+                    </label>
+                    <input type="text" name="fullname" class="form-control" placeholder="Adýnýz ve Soyadýnýz" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="bi bi-at"></i> Kullanýcý Adý *
+                    </label>
+                    <input type="text" name="username" class="form-control" placeholder="Kullanýcý adý seçin" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="bi bi-envelope"></i> E-posta *
+                    </label>
+                    <input type="email" name="email" class="form-control" placeholder="ornek@example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="bi bi-building"></i> Birim *
+                    </label>
+                    <select name="unitId" class="form-select" required>
+                        <option value="">Birim Seçin</option>
+                        @if (units != null)
+                        {
+                            foreach (var unit in units)
+                            {
+                                <option value="@unit.UnitId">@unit.UnitName</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="row-form">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="bi bi-lock"></i> Þifre *
+                        </label>
+                        <input type="password" name="password" class="form-control" placeholder="Þifre" required minlength="6">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="bi bi-lock"></i> Þifre Onayla *
+                        </label>
+                        <input type="password" name="confirmPassword" class="form-control" placeholder="Þifreyi Onayla" required minlength="6">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-register">
+                    <i class="bi bi-check-circle"></i> Kaydol
+                </button>
+
+                <div class="login-link">
+                    <p>Zaten hesabýnýz var mý? <a href="@Url.Action("Login", "Account")">Giriþ Yap</a></p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -1,33 +1,224 @@
 ﻿@{
-    ViewBag.Title = "Home Page";
+    ViewBag.Title = "Antalya Gazipasa Havaliman - İstatistik Sistemi";
 }
 
-<main>
-    <section class="row" aria-labelledby="aspnetTitle">
-        <h1 id="title">ASP.NET</h1>
-        <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
-        <p><a href="https://asp.net" class="btn btn-primary btn-md">Learn more &raquo;</a></p>
-    </section>
+<style>
+    :root {
+        --primary-color: #2c3e50;
+        --secondary-color: #3498db;
+        --success-color: #27ae60;
+        --danger-color: #e74c3c;
+    }
 
-    <div class="row">
-        <section class="col-md-4" aria-labelledby="gettingStartedTitle">
-            <h2 id="gettingStartedTitle">Getting started</h2>
-            <p>
-                ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-                enables a clean separation of concerns and gives you full control over markup
-                for enjoyable, agile development.
-            </p>
-            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
-        </section>
-        <section class="col-md-4" aria-labelledby="librariesTitle">
-            <h2 id="librariesTitle">Get more libraries</h2>
-            <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
-        </section>
-        <section class="col-md-4" aria-labelledby="hostingTitle">
-            <h2 id="hostingTitle">Web Hosting</h2>
-            <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
-        </section>
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 60px 0;
+        border-radius: 10px;
+        margin-bottom: 40px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .hero-section h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
+
+    .hero-section .lead {
+        font-size: 1.25rem;
+        margin-bottom: 30px;
+    }
+
+    .feature-card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .feature-card .card-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        border: none;
+        padding: 20px;
+        font-weight: 600;
+        border-radius: 10px 10px 0 0;
+    }
+
+    .feature-card .card-body {
+        padding: 25px;
+    }
+
+    .feature-icon {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+        color: var(--secondary-color);
+    }
+
+    .btn-primary, .btn-success {
+        border-radius: 8px;
+        padding: 10px 25px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background-color: var(--secondary-color);
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background-color: #2980b9;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+    }
+
+    .btn-success {
+        background-color: var(--success-color);
+        border: none;
+    }
+
+    .btn-success:hover {
+        background-color: #229954;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+    }
+</style>
+
+<main>
+    <!-- Hero Section -->
+    <div class="hero-section text-center">
+        <h1>
+            <i class="bi bi-shield-lock"></i> Antalya Gazipasa Havaliman Emniyet Şube
+        </h1>
+        <p class="lead">Günlük İstatistik Veri Giriş ve Yönetim Sistemi</p>
+        <p>Suç önleme, sorgu ve arama/yakalama faaliyetlerini kolayca takip edin</p>
+        @if (User.Identity.IsAuthenticated)
+        {
+            <a href="@Url.Action("DataEntry", "Home")" class="btn btn-primary btn-lg">
+                <i class="bi bi-pencil-square"></i> Veri Giriş Sayfasına Git
+            </a>
+        }
+        else
+        {
+            <div>
+                <a href="@Url.Action("Login", "Account")" class="btn btn-primary btn-lg" style="margin-right: 10px;">
+                    <i class="bi bi-box-arrow-in-right"></i> Giriş Yap
+                </a>
+                <a href="@Url.Action("Register", "Account")" class="btn btn-success btn-lg">
+                    <i class="bi bi-person-plus"></i> Kaydol
+                </a>
+            </div>
+        }
+    </div>
+
+    <!-- Features Section -->
+    <div class="row g-4">
+        <!-- Crime Statistics Card -->
+        <div class="col-md-4">
+            <div class="card feature-card">
+                <div class="card-header">
+                    <i class="bi bi-exclamation-circle"></i> Ceraim İstatistikleri
+                </div>
+                <div class="card-body">
+                    <div class="feature-icon">
+                        <i class="bi bi-graph-up"></i>
+                    </div>
+                    <p>Suç (Ceraim) türlerine göre günlük istatistikleri kaydedin ve izleyin. Şüpheli, tutuklanan ve adli kontrol altındaki kişi sayılarını takip edin.</p>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <a href="@Url.Action("DataEntry", "Home")" class="btn btn-primary w-100">
+                            <i class="bi bi-arrow-right"></i> Kayıt Yap
+                        </a>
+                    }
+                    else
+                    {
+                        <a href="@Url.Action("Login", "Account")" class="btn btn-primary w-100">
+                            <i class="bi bi-lock"></i> Giriş Yapın
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Query Statistics Card -->
+        <div class="col-md-4">
+            <div class="card feature-card">
+                <div class="card-header">
+                    <i class="bi bi-search"></i> Sorgu İstatistikleri
+                </div>
+                <div class="card-body">
+                    <div class="feature-icon">
+                        <i class="bi bi-database"></i>
+                    </div>
+                    <p>GBT (Genel Bilişim Taraması) ve YTS (Yabancı Taraması) sorgu verilerini kaydedin. Vardia bazında sorgulanan ve yakalanan kişi sayılarını izleyin.</p>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <a href="@Url.Action("DataEntry", "Home")" class="btn btn-primary w-100">
+                            <i class="bi bi-arrow-right"></i> Kayıt Yap
+                        </a>
+                    }
+                    else
+                    {
+                        <a href="@Url.Action("Login", "Account")" class="btn btn-primary w-100">
+                            <i class="bi bi-lock"></i> Giriş Yapın
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Card -->
+        <div class="col-md-4">
+            <div class="card feature-card">
+                <div class="card-header">
+                    <i class="bi bi-activity"></i> Arama/Yakalama
+                </div>
+                <div class="card-body">
+                    <div class="feature-icon">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                    <p>Yakalama emri kaynaklarına göre arama ve yakalama faaliyetlerini kaydedin. Yakalama yeri ve tutuklama verilerini sistematik olarak izleyin.</p>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <a href="@Url.Action("DataEntry", "Home")" class="btn btn-primary w-100">
+                            <i class="bi bi-arrow-right"></i> Kayıt Yap
+                        </a>
+                    }
+                    else
+                    {
+                        <a href="@Url.Action("Login", "Account")" class="btn btn-primary w-100">
+                            <i class="bi bi-lock"></i> Giriş Yapın
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="alert alert-info" role="alert">
+                <h4 class="alert-heading">
+                    <i class="bi bi-info-circle"></i> Sistem Hakkında
+                </h4>
+                <p>
+                    Bu sistem, Antalya Gazipasa Havaliman Emniyet Şubesi'nin günlük operasyonel verilerini merkezi bir platformda yönetmesine olanak sağlar.
+                    Tüm veriler güvenli bir şekilde kaydedilir ve tarih bazında filtrelenerek kolayca erişilebilir.
+                </p>
+                <hr>
+                <p class="mb-0">
+                    Veri girmek için <strong>"Veri Giriş Sayfasına Git"</strong> butonunu veya yukarıdaki kartlardan birini tıklayın.
+                </p>
+            </div>
+        </div>
     </div>
 </main>

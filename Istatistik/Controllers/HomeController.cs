@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
+using Istatistik.Models;
 
 namespace Istatistik.Controllers
 {
@@ -26,11 +27,13 @@ namespace Istatistik.Controllers
             }
         }
 
+        [AllowAnonymous]
         public ActionResult Index()
         {
             return View();
         }
 
+        [Authorize]
         public ActionResult DataEntry()
         {
             return View();
@@ -51,12 +54,68 @@ namespace Istatistik.Controllers
             }
         }
 
+        [HttpGet]
+        public ActionResult GetAll()
+        {
+            try
+            {
+                var activeUnits = units.Where(u => u.IsActive).OrderBy(u => u.UnitName).ToList();
+                return Json(new { success = true, data = activeUnits }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // Helper method - Kullanıcının birim yetkisini kontrol et
+        private bool VerifyUserUnitAccess(int requestedUnitId)
+        {
+            var userUnitId = Session["UnitId"] as int?;
+            var userRole = Session["UserRole"] as string;
+
+            // Admin'ler tüm birimlere erişebilir
+            if (userRole == "Admin")
+                return true;
+
+            // Diğer kullanıcılar sadece kendi birimine erişebilir
+            return userUnitId == requestedUnitId;
+        }
+
         // API Methods for Crime Statistics
         [HttpGet]
+        [Authorize]
         public ActionResult GetCrimeStatistics(int unitId, DateTime date)
         {
             try
             {
+                // Birim yetkisini kontrol et
+                if (!VerifyUserUnitAccess(unitId))
+                {
+                    return Json(new { success = false, message = "Bu birime erişim yetkiniz yok!" }, JsonRequestBehavior.AllowGet);
+                }
+
+                var stats = crimes.Where(c => c.UnitId == unitId && c.EntryDate.Date == date.Date).ToList();
+                return Json(new { success = true, data = stats }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [HttpGet]
+        [Authorize]
+        public ActionResult GetByDate(int unitId, DateTime date)
+        {
+            try
+            {
+                // Birim yetkisini kontrol et
+                if (!VerifyUserUnitAccess(unitId))
+                {
+                    return Json(new { success = false, message = "Bu birime erişim yetkiniz yok!" }, JsonRequestBehavior.AllowGet);
+                }
+
                 var stats = crimes.Where(c => c.UnitId == unitId && c.EntryDate.Date == date.Date).ToList();
                 return Json(new { success = true, data = stats }, JsonRequestBehavior.AllowGet);
             }
@@ -67,15 +126,23 @@ namespace Istatistik.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public ActionResult SaveCrimeStatistic(CrimeStatistic model)
         {
             try
             {
+                // Birim yetkisini kontrol et
+                if (!VerifyUserUnitAccess(model.UnitId))
+                {
+                    return Json(new { success = false, message = "Bu birime erişim yetkiniz yok!" });
+                }
+
                 model.CrimeStatisticId = crimes.Count > 0 ? crimes.Max(c => c.CrimeStatisticId) + 1 : 1;
                 model.CreatedDate = DateTime.Now;
+                model.CreatedBy = Session["Username"] as string;
                 crimes.Add(model);
 
-                return Json(new { success = true, message = "Kaydedildi", data = model });
+                return Json(new { success = true, message = "Başarıyla kaydedildi", data = model });
             }
             catch (Exception ex)
             {
@@ -84,15 +151,81 @@ namespace Istatistik.Controllers
         }
 
         [HttpPost]
+        [Authorize]
+        public ActionResult Create(CrimeStatistic model)
+        {
+            try
+            {
+                if (model == null)
+                {
+                    return Json(new { success = false, message = "Geçersiz veri" });
+                }
+
+                // Birim yetkisini kontrol et
+                if (!VerifyUserUnitAccess(model.UnitId))
+                {
+                    return Json(new { success = false, message = "Bu birime erişim yetkiniz yok!" });
+                }
+
+                model.CrimeStatisticId = crimes.Count > 0 ? crimes.Max(c => c.CrimeStatisticId) + 1 : 1;
+                model.CreatedDate = DateTime.Now;
+                model.CreatedBy = Session["Username"] as string;
+                crimes.Add(model);
+
+                return Json(new { success = true, message = "Başarıyla kaydedildi", data = model });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Authorize]
         public ActionResult DeleteCrimeStatistic(int id)
         {
             try
             {
                 var crime = crimes.FirstOrDefault(c => c.CrimeStatisticId == id);
                 if (crime != null)
-                    crimes.Remove(crime);
+                {
+                    // Birim yetkisini kontrol et
+                    if (!VerifyUserUnitAccess(crime.UnitId))
+                    {
+                        return Json(new { success = false, message = "Bu birime erişim yetkiniz yok!" });
+                    }
 
-                return Json(new { success = true, message = "Silindi" });
+                    crimes.Remove(crime);
+                }
+
+                return Json(new { success = true, message = "Başarıyla silindi" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Authorize]
+        public ActionResult Delete(dynamic request)
+        {
+            try
+            {
+                int id = request.id;
+                var crime = crimes.FirstOrDefault(c => c.CrimeStatisticId == id);
+                if (crime != null)
+                {
+                    // Birim yetkisini kontrol et
+                    if (!VerifyUserUnitAccess(crime.UnitId))
+                    {
+                        return Json(new { success = false, message = "Bu birime erişim yetkiniz yok!" });
+                    }
+
+                    crimes.Remove(crime);
+                }
+
+                return Json(new { success = true, message = "Başarıyla silindi" });
             }
             catch (Exception ex)
             {
@@ -102,10 +235,17 @@ namespace Istatistik.Controllers
 
         // API Methods for Query Statistics
         [HttpGet]
+        [Authorize]
         public ActionResult GetQueryStatistics(int unitId, DateTime date)
         {
             try
             {
+                // Birim yetkisini kontrol et
+                if (!VerifyUserUnitAccess(unitId))
+                {
+                    return Json(new { success = false, message = "Bu birime erişim yetkiniz yok!" }, JsonRequestBehavior.AllowGet);
+                }
+
                 var stats = queries.Where(q => q.UnitId == unitId && q.EntryDate.Date == date.Date).ToList();
                 return Json(new { success = true, data = stats }, JsonRequestBehavior.AllowGet);
             }
@@ -116,15 +256,23 @@ namespace Istatistik.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public ActionResult SaveQueryStatistic(QueryStatistic model)
         {
             try
             {
+                // Birim yetkisini kontrol et
+                if (!VerifyUserUnitAccess(model.UnitId))
+                {
+                    return Json(new { success = false, message = "Bu birime erişim yetkiniz yok!" });
+                }
+
                 model.QueryStatisticId = queries.Count > 0 ? queries.Max(q => q.QueryStatisticId) + 1 : 1;
                 model.CreatedDate = DateTime.Now;
+                model.CreatedBy = Session["Username"] as string;
                 queries.Add(model);
 
-                return Json(new { success = true, message = "Kaydedildi", data = model });
+                return Json(new { success = true, message = "Başarıyla kaydedildi", data = model });
             }
             catch (Exception ex)
             {
@@ -133,15 +281,24 @@ namespace Istatistik.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public ActionResult DeleteQueryStatistic(int id)
         {
             try
             {
                 var query = queries.FirstOrDefault(q => q.QueryStatisticId == id);
                 if (query != null)
-                    queries.Remove(query);
+                {
+                    // Birim yetkisini kontrol et
+                    if (!VerifyUserUnitAccess(query.UnitId))
+                    {
+                        return Json(new { success = false, message = "Bu birime erişim yetkiniz yok!" });
+                    }
 
-                return Json(new { success = true, message = "Silindi" });
+                    queries.Remove(query);
+                }
+
+                return Json(new { success = true, message = "Başarıyla silindi" });
             }
             catch (Exception ex)
             {
@@ -151,10 +308,17 @@ namespace Istatistik.Controllers
 
         // API Methods for Crime Prevention Activities
         [HttpGet]
+        [Authorize]
         public ActionResult GetActivities(int unitId, DateTime date)
         {
             try
             {
+                // Birim yetkisini kontrol et
+                if (!VerifyUserUnitAccess(unitId))
+                {
+                    return Json(new { success = false, message = "Bu birime erişim yetkiniz yok!" }, JsonRequestBehavior.AllowGet);
+                }
+
                 var stats = activities.Where(a => a.UnitId == unitId && a.EntryDate.Date == date.Date).ToList();
                 return Json(new { success = true, data = stats }, JsonRequestBehavior.AllowGet);
             }
@@ -165,15 +329,23 @@ namespace Istatistik.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public ActionResult SaveActivity(CrimePreventionActivity model)
         {
             try
             {
+                // Birim yetkisini kontrol et
+                if (!VerifyUserUnitAccess(model.UnitId))
+                {
+                    return Json(new { success = false, message = "Bu birime erişim yetkiniz yok!" });
+                }
+
                 model.ActivityId = activities.Count > 0 ? activities.Max(a => a.ActivityId) + 1 : 1;
                 model.CreatedDate = DateTime.Now;
+                model.CreatedBy = Session["Username"] as string;
                 activities.Add(model);
 
-                return Json(new { success = true, message = "Kaydedildi", data = model });
+                return Json(new { success = true, message = "Başarıyla kaydedildi", data = model });
             }
             catch (Exception ex)
             {
@@ -182,15 +354,24 @@ namespace Istatistik.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public ActionResult DeleteActivity(int id)
         {
             try
             {
                 var activity = activities.FirstOrDefault(a => a.ActivityId == id);
                 if (activity != null)
-                    activities.Remove(activity);
+                {
+                    // Birim yetkisini kontrol et
+                    if (!VerifyUserUnitAccess(activity.UnitId))
+                    {
+                        return Json(new { success = false, message = "Bu birime erişim yetkiniz yok!" });
+                    }
 
-                return Json(new { success = true, message = "Silindi" });
+                    activities.Remove(activity);
+                }
+
+                return Json(new { success = true, message = "Başarıyla silindi" });
             }
             catch (Exception ex)
             {
@@ -198,16 +379,17 @@ namespace Istatistik.Controllers
             }
         }
 
+        [AllowAnonymous]
         public ActionResult About()
         {
-            ViewBag.Message = "Your application description page.";
+            ViewBag.Message = "Sistem Hakkında";
             return View();
         }
 
+        [AllowAnonymous]
         public ActionResult Contact()
         {
-            ViewBag.Message = "Your contact page.";
-
+            ViewBag.Message = "İletişim sayfası";
             return View();
         }
     }

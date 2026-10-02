@@ -4,6 +4,8 @@ const API_BASE_URL = '';
 // Global State
 let currentUnit = null;
 let currentDate = new Date().toISOString().split('T')[0];
+let userRole = null;
+let userUnitId = null;
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function () {
@@ -29,7 +31,7 @@ function initializePage() {
 
 function loadUnits() {
     showSpinner(true);
-    fetch(`${API_BASE_URL}/Units/GetAll`)
+    fetch(`${API_BASE_URL}/Home/GetUnits`)
         .then(response => response.json())
         .then(data => {
             if (data.success && data.data) {
@@ -63,8 +65,18 @@ function populateUnitSelect(units) {
 }
 
 function setCurrentUser() {
-    const username = 'Kullanýcý'; // Ýleride authentication ile alýnacak
-    document.getElementById('kullaniciAdi').textContent = `?? ${username}`;
+    // Sunucu tarafýndan gönderilen kullanýcý bilgilerini al
+    const userInfo = document.getElementById('userInfo');
+    if (userInfo) {
+        const fullName = userInfo.getAttribute('data-fullname');
+        const role = userInfo.getAttribute('data-role');
+        const unitId = userInfo.getAttribute('data-unitid');
+
+        userRole = role;
+        userUnitId = parseInt(unitId);
+
+        document.getElementById('kullaniciAdi').textContent = `?? ${fullName} (${role})`;
+    }
 }
 
 // ============================================================================
@@ -133,7 +145,7 @@ function saveCrimeStatistic() {
     }
 
     showSpinner(true);
-    fetch(`${API_BASE_URL}/CrimeStatistics/Create`, {
+    fetch(`${API_BASE_URL}/Home/SaveCrimeStatistic`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -165,7 +177,7 @@ function loadCrimeStatistics() {
     if (!unitId || !date) return;
 
     showSpinner(true);
-    fetch(`${API_BASE_URL}/CrimeStatistics/GetByDate?unitId=${unitId}&date=${date}`)
+    fetch(`${API_BASE_URL}/Home/GetCrimeStatistics?unitId=${unitId}&date=${date}`)
         .then(response => response.json())
         .then(data => {
             if (data.success && data.data) {
@@ -211,7 +223,7 @@ function deleteCrimeStatistic(id) {
     if (!confirm('Silmek istediðinizden emin misiniz?')) return;
 
     showSpinner(true);
-    fetch(`${API_BASE_URL}/CrimeStatistics/Delete`, {
+    fetch(`${API_BASE_URL}/Home/DeleteCrimeStatistic`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -257,7 +269,7 @@ function saveQueryStatistic() {
     };
 
     showSpinner(true);
-    fetch(`${API_BASE_URL}/QueryStatistics/Create`, {
+    fetch(`${API_BASE_URL}/Home/SaveQueryStatistic`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -286,7 +298,7 @@ function loadQueryStatistics() {
     if (!unitId || !date) return;
 
     showSpinner(true);
-    fetch(`${API_BASE_URL}/QueryStatistics/GetByDate?unitId=${unitId}&date=${date}`)
+    fetch(`${API_BASE_URL}/Home/GetQueryStatistics?unitId=${unitId}&date=${date}`)
         .then(response => response.json())
         .then(data => {
             if (data.success && data.data) {
@@ -332,7 +344,7 @@ function deleteQueryStatistic(id) {
     if (!confirm('Silmek istediðinizden emin misiniz?')) return;
 
     showSpinner(true);
-    fetch(`${API_BASE_URL}/QueryStatistics/Delete`, {
+    fetch(`${API_BASE_URL}/Home/DeleteQueryStatistic`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -379,7 +391,7 @@ function saveActivityStatistic() {
     };
 
     showSpinner(true);
-    fetch(`${API_BASE_URL}/CrimePreventionActivities/Create`, {
+    fetch(`${API_BASE_URL}/Home/SaveActivity`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -408,7 +420,7 @@ function loadActivityStatistics() {
     if (!unitId || !date) return;
 
     showSpinner(true);
-    fetch(`${API_BASE_URL}/CrimePreventionActivities/GetByDate?unitId=${unitId}&date=${date}`)
+    fetch(`${API_BASE_URL}/Home/GetActivities?unitId=${unitId}&date=${date}`)
         .then(response => response.json())
         .then(data => {
             if (data.success && data.data) {
@@ -454,7 +466,7 @@ function deleteActivityStatistic(id) {
     if (!confirm('Silmek istediðinizden emin misiniz?')) return;
 
     showSpinner(true);
-    fetch(`${API_BASE_URL}/CrimePreventionActivities/Delete`, {
+    fetch(`${API_BASE_URL}/Home/DeleteActivity`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -494,9 +506,9 @@ function updateSummaryCards() {
 
     // Load all data and calculate totals
     Promise.all([
-        fetch(`${API_BASE_URL}/CrimeStatistics/GetByDate?unitId=${unitId}&date=${date}`).then(r => r.json()),
-        fetch(`${API_BASE_URL}/QueryStatistics/GetByDate?unitId=${unitId}&date=${date}`).then(r => r.json()),
-        fetch(`${API_BASE_URL}/CrimePreventionActivities/GetByDate?unitId=${unitId}&date=${date}`).then(r => r.json())
+        fetch(`${API_BASE_URL}/Home/GetCrimeStatistics?unitId=${unitId}&date=${date}`).then(r => r.json()),
+        fetch(`${API_BASE_URL}/Home/GetQueryStatistics?unitId=${unitId}&date=${date}`).then(r => r.json()),
+        fetch(`${API_BASE_URL}/Home/GetActivities?unitId=${unitId}&date=${date}`).then(r => r.json())
     ])
         .then(([crimes, queries, activities]) => {
             let totalCrimes = 0;
