@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 using Istatistik.Models;
+using Istatistik.Services;
 
 namespace Istatistik.Controllers
 {
@@ -41,11 +42,12 @@ namespace Istatistik.Controllers
 
         // API Methods for Units
         [HttpGet]
+        [Authorize]
         public ActionResult GetUnits()
         {
             try
             {
-                var activeUnits = units.Where(u => u.IsActive).OrderBy(u => u.UnitName).ToList();
+                var activeUnits = units.Where(u => u.IsActive && VerifyUserUnitAccess(u.UnitId)).OrderBy(u => u.UnitName).ToList();
                 return Json(new { success = true, data = activeUnits }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
@@ -55,11 +57,12 @@ namespace Istatistik.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public ActionResult GetAll()
         {
             try
             {
-                var activeUnits = units.Where(u => u.IsActive).OrderBy(u => u.UnitName).ToList();
+                var activeUnits = units.Where(u => u.IsActive && VerifyUserUnitAccess(u.UnitId)).OrderBy(u => u.UnitName).ToList();
                 return Json(new { success = true, data = activeUnits }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
@@ -68,18 +71,27 @@ namespace Istatistik.Controllers
             }
         }
 
-        // Helper method - Kullanıcının birim yetkisini kontrol et
+        // Helper method - Kullanıcının büro yetkisini kontrol et
+        // Eski modüllerdeki Unit kayıtları, havalimanı içindeki bürolara karşılık gelir.
+        private static readonly Dictionary<int, string> UnitBureauCodes = new Dictionary<int, string>
+        {
+            { 1, "SUC_ONLEME" },
+            { 2, "IDARI" },
+            { 3, BureauCodes.Pasaport },
+            { 4, "TRAFIK" }
+        };
+
         private bool VerifyUserUnitAccess(int requestedUnitId)
         {
-            var userUnitId = Session["UnitId"] as int?;
-            var userRole = Session["UserRole"] as string;
+            var user = CurrentUser.FromSession(Session);
+            if (user == null || string.IsNullOrEmpty(user.Border))
+                return false;
 
-            // Admin'ler tüm birimlere erişebilir
-            if (userRole == "Admin")
-                return true;
+            string code;
+            if (!UnitBureauCodes.TryGetValue(requestedUnitId, out code))
+                return false;
 
-            // Diğer kullanıcılar sadece kendi birimine erişebilir
-            return userUnitId == requestedUnitId;
+            return user.CanAccessBureau(code);
         }
 
         // API Methods for Crime Statistics

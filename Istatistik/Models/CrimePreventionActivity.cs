@@ -1,11 +1,11 @@
-using System;
+ï»¿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Istatistik.Models
 {
     /// <summary>
-    /// Suç Önleme Faaliyetleri ve Arama/Yakalamalar
+    /// SuÃ§ Ã–nleme Faaliyetleri ve Arama/Yakalamalar
     /// </summary>
     public class CrimePreventionActivity
     {
@@ -20,7 +20,7 @@ public virtual Unit Unit { get; set; }
         public DateTime EntryDate { get; set; }
 
         [StringLength(50)]
-        public string WarrantSource { get; set; } // UAP/GBT kaynaklý
+        public string WarrantSource { get; set; } // UAP/GBT kaynaklÄ±
 
         [Range(0, int.MaxValue)]
         public int WarrantCount { get; set; } = 0;
@@ -29,7 +29,7 @@ public virtual Unit Unit { get; set; }
         public int ApprehendedCount { get; set; } = 0;
 
         [StringLength(200)]
-        public string ApprehensionLocation { get; set; } // Yakalama Yeri/Noktasý
+        public string ApprehensionLocation { get; set; } // Yakalama Yeri/NoktasÄ±
 
         [Range(0, int.MaxValue)]
         public int ArrestedCount { get; set; } = 0;

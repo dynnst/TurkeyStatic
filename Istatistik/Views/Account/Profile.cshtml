@@ -1,4 +1,4 @@
-@model Istatistik.Models.User
+ï»¿@model Istatistik.Models.User
 
 @{
     ViewBag.Title = "Profil";
@@ -156,12 +156,12 @@
         </div>
         <div class="card-body">
             <div class="alert alert-info" role="alert">
-                <i class="bi bi-info-circle"></i> Giriþ yaptýðýnýz hesabýn detaylý bilgileri aþaðýdadýr.
+                <i class="bi bi-info-circle"></i> GiriÅŸ yaptÄ±ÄŸÄ±nÄ±z hesabÄ±n detaylÄ± bilgileri aÅŸaÄŸÄ±dadÄ±r.
             </div>
 
             <div class="info-group">
                 <div class="info-label">
-                    <i class="bi bi-person"></i> Adý Soyadý
+                    <i class="bi bi-person"></i> AdÄ± SoyadÄ±
                 </div>
                 <div class="info-value">
                     @Model.FullName
@@ -170,7 +170,7 @@
 
             <div class="info-group">
                 <div class="info-label">
-                    <i class="bi bi-at"></i> Kullanýcý Adý
+                    <i class="bi bi-at"></i> KullanÄ±cÄ± AdÄ±
                 </div>
                 <div class="info-value">
                     @Model.Username
@@ -191,26 +191,7 @@
                     <i class="bi bi-building"></i> Birim
                 </div>
                 <div class="info-value">
-                    @if (Model.UnitId == 1)
-                    {
-                        <span>Suç Önleme Þubesi</span>
-                    }
-                    else if (Model.UnitId == 2)
-                    {
-                        <span>Ýdari Ýþler Bürosu</span>
-                    }
-                    else if (Model.UnitId == 3)
-                    {
-                        <span>Pasaport Ýþleri Bürosu</span>
-                    }
-                    else if (Model.UnitId == 4)
-                    {
-                        <span>Trafik Þubesi</span>
-                    }
-                    else
-                    {
-                        <span>Bilinmiyor</span>
-                    }
+                    @(Session["Border"] as string ?? "Bilinmiyor")
                 </div>
             </div>
 
@@ -219,33 +200,33 @@
                     <i class="bi bi-shield-check"></i> Rol
                 </div>
                 <div class="info-value">
-                    @if (Model.Role == "Admin")
+                    @if (Model.Role == "SuperAdmin")
                     {
-                        <span class="badge badge-admin">Sistem Yöneticisi</span>
+                        <span class="badge badge-admin">Sistem YÃ¶neticisi</span>
                     }
-                    else if (Model.Role == "DataEntryPersonnel")
+                    else if (Model.Role == "UnitAdmin")
                     {
-                        <span class="badge badge-personnel">Veri Giriþ Personeli</span>
+                        <span class="badge badge-admin">Birim YÃ¶neticisi</span>
                     }
-                    else if (Model.Role == "Observer")
+                    else if (Model.Role == "BureauUser")
                     {
-                        <span class="badge badge-observer">Gözlemci</span>
+                        <span class="badge badge-personnel">BÃ¼ro KullanÄ±cÄ±sÄ±</span>
                     }
                 </div>
             </div>
 
             <div class="info-group">
                 <div class="info-label">
-                    <i class="bi bi-calendar-event"></i> Kayýt Tarihi
+                    <i class="bi bi-calendar-event"></i> KayÄ±t Tarihi
                 </div>
                 <div class="info-value">
-                    @Model.CreatedDate.ToString("dd.MM.yyyy HH:mm")
+                    @(Session["LoginTime"] as string ?? "-")
                 </div>
             </div>
 
             <div class="info-group">
                 <div class="info-label">
-                    <i class="bi bi-clock-history"></i> Son Giriþ
+                    <i class="bi bi-clock-history"></i> Son GiriÅŸ
                 </div>
                 <div class="info-value">
                     @if (Model.LastLoginDate.HasValue)
@@ -254,14 +235,14 @@
                     }
                     else
                     {
-                        <span>Henüz giriþ yapýlmadý</span>
+                        <span>HenÃ¼z giriÅŸ yapÄ±lmadÄ±</span>
                     }
                 </div>
             </div>
 
             <div class="action-buttons">
                 @Html.ActionLink("?? Ana Sayfa", "Index", "Home", null, new { @class = "btn btn-primary" })
-                @Html.ActionLink("?? Çýkýþ", "Logout", "Account", null, new { @class = "btn btn-danger" })
+                @Html.ActionLink("?? Ã‡Ä±kÄ±ÅŸ", "Logout", "Account", null, new { @class = "btn btn-danger" })
             </div>
         </div>
     </div>

@@ -1,11 +1,11 @@
-using System;
+ï»¿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Istatistik.Models
 {
     /// <summary>
-    /// Audit Log: Kim, Ne Zaman, Hangi Veriyi Deðiþtirdi
+    /// Audit Log: Kim, Ne Zaman, Hangi Veriyi DeÄŸiÅŸtirdi
     /// </summary>
     public class AuditLog
     {

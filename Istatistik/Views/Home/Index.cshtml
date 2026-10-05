@@ -8,15 +8,44 @@
         --secondary-color: #3498db;
         --success-color: #27ae60;
         --danger-color: #e74c3c;
+        --f16-opacity: 0.14; /* Uçak arka planı saydamlık oranı (0.05 - 0.30 arası tercih edilebilir) */
+    }
+
+    /* F-16 Şeffaf Arka Plan Filigranı */
+    .f16-bg-watermark {
+        position: fixed;
+        right: -3%;
+        bottom: 3%;
+        width: 62vw;
+        max-width: 860px;
+        min-width: 300px;
+        opacity: var(--f16-opacity);
+        pointer-events: none;
+        z-index: 0;
+        user-select: none;
+        transition: opacity 0.3s ease;
+    }
+
+    .f16-bg-watermark img {
+        width: 100%;
+        height: auto;
+        display: block;
+        filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.25));
+    }
+
+    main {
+        position: relative;
+        z-index: 1;
     }
 
     .hero-section {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%);
         color: white;
         padding: 60px 0;
         border-radius: 10px;
         margin-bottom: 40px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        backdrop-filter: blur(5px);
     }
 
     .hero-section h1 {
@@ -33,9 +62,12 @@
     .feature-card {
         border: none;
         border-radius: 10px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
         transition: all 0.3s ease;
         height: 100%;
+        background-color: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
     }
 
     .feature-card:hover {
@@ -90,7 +122,21 @@
         transform: translateY(-2px);
         box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
     }
+
+    @@media (max-width: 768px) {
+        .f16-bg-watermark {
+            width: 90vw;
+            right: -10%;
+            bottom: 5%;
+            opacity: 0.10;
+        }
+    }
 </style>
+
+<!-- F-16 Şeffaf Arka Plan Görseli -->
+<div class="f16-bg-watermark" aria-hidden="true">
+    <img src="@Url.Content("~/Content/images/f16_transparent.png")" alt="F-16 Arka Plan Görseli" />
+</div>
 
 <main>
     <!-- Hero Section -->
@@ -102,7 +148,7 @@
         <p>Suç önleme, sorgu ve arama/yakalama faaliyetlerini kolayca takip edin</p>
         @if (User.Identity.IsAuthenticated)
         {
-            <a href="@Url.Action("DataEntry", "Home")" class="btn btn-primary btn-lg">
+            <a href="@Url.Action("Index", "Bureau")" class="btn btn-primary btn-lg">
                 <i class="bi bi-pencil-square"></i> Veri Giriş Sayfasına Git
             </a>
         }
@@ -111,9 +157,6 @@
             <div>
                 <a href="@Url.Action("Login", "Account")" class="btn btn-primary btn-lg" style="margin-right: 10px;">
                     <i class="bi bi-box-arrow-in-right"></i> Giriş Yap
-                </a>
-                <a href="@Url.Action("Register", "Account")" class="btn btn-success btn-lg">
-                    <i class="bi bi-person-plus"></i> Kaydol
                 </a>
             </div>
         }
@@ -134,7 +177,7 @@
                     <p>Suç (Ceraim) türlerine göre günlük istatistikleri kaydedin ve izleyin. Şüpheli, tutuklanan ve adli kontrol altındaki kişi sayılarını takip edin.</p>
                     @if (User.Identity.IsAuthenticated)
                     {
-                        <a href="@Url.Action("DataEntry", "Home")" class="btn btn-primary w-100">
+                        <a href="@Url.Action("Index", "Bureau")" class="btn btn-primary w-100">
                             <i class="bi bi-arrow-right"></i> Kayıt Yap
                         </a>
                     }
@@ -161,7 +204,7 @@
                     <p>GBT (Genel Bilişim Taraması) ve YTS (Yabancı Taraması) sorgu verilerini kaydedin. Vardia bazında sorgulanan ve yakalanan kişi sayılarını izleyin.</p>
                     @if (User.Identity.IsAuthenticated)
                     {
-                        <a href="@Url.Action("DataEntry", "Home")" class="btn btn-primary w-100">
+                        <a href="@Url.Action("Index", "Bureau")" class="btn btn-primary w-100">
                             <i class="bi bi-arrow-right"></i> Kayıt Yap
                         </a>
                     }
@@ -188,7 +231,7 @@
                     <p>Yakalama emri kaynaklarına göre arama ve yakalama faaliyetlerini kaydedin. Yakalama yeri ve tutuklama verilerini sistematik olarak izleyin.</p>
                     @if (User.Identity.IsAuthenticated)
                     {
-                        <a href="@Url.Action("DataEntry", "Home")" class="btn btn-primary w-100">
+                        <a href="@Url.Action("Index", "Bureau")" class="btn btn-primary w-100">
                             <i class="bi bi-arrow-right"></i> Kayıt Yap
                         </a>
                     }

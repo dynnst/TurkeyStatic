@@ -1,4 +1,4 @@
-using Istatistik.Models;
+ï»¿using Istatistik.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,14 +31,14 @@ namespace Istatistik.Controllers
             {
                 if (model == null)
                 {
-                    return Json(new { success = false, message = "Geçersiz veri" });
+                    return Json(new { success = false, message = "GeÃ§ersiz veri" });
                 }
 
                 model.ActivityId = activities.Count > 0 ? activities.Max(a => a.ActivityId) + 1 : 1;
                 model.CreatedDate = DateTime.Now;
                 activities.Add(model);
 
-                return Json(new { success = true, message = "Baþarýyla kaydedildi", data = model });
+                return Json(new { success = true, message = "BaÅŸarÄ±yla kaydedildi", data = model });
             }
             catch (Exception ex)
             {
@@ -56,7 +56,7 @@ namespace Istatistik.Controllers
                 if (activity != null)
                     activities.Remove(activity);
 
-                return Json(new { success = true, message = "Baþarýyla silindi" });
+                return Json(new { success = true, message = "BaÅŸarÄ±yla silindi" });
             }
             catch (Exception ex)
             {

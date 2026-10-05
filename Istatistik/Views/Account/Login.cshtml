@@ -1,5 +1,5 @@
-@{
-    ViewBag.Title = "Giriþ Yap";
+ï»¿@{
+    ViewBag.Title = "GiriÅŸ Yap";
 }
 
 <style>
@@ -143,9 +143,9 @@
     <div class="card login-card">
         <div class="card-header">
             <h3>
-                <i class="bi bi-shield-lock"></i> Ýstatistik Sistemi
+                <i class="bi bi-shield-lock"></i> Ä°statistik Sistemi
             </h3>
-            <p>Antalya Gazipasa Havaliman Emniyet Þube</p>
+            <p>Antalya Gazipasa Havaliman Emniyet Åžube</p>
         </div>
         <div class="card-body">
             @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
@@ -168,36 +168,36 @@
 
                 <div class="form-group">
                     <label class="form-label">
-                        <i class="bi bi-person"></i> Kullanýcý Adý
+                        <i class="bi bi-person"></i> KullanÄ±cÄ± AdÄ±
                     </label>
-                    <input type="text" name="username" class="form-control" placeholder="Kullanýcý adýnýz" required>
+                    <input type="text" name="username" class="form-control" placeholder="KullanÄ±cÄ± adÄ±nÄ±z" required>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">
-                        <i class="bi bi-lock"></i> Þifre
+                        <i class="bi bi-lock"></i> Åžifre
                     </label>
-                    <input type="password" name="password" class="form-control" placeholder="Þifreniz" required>
+                    <input type="password" name="password" class="form-control" placeholder="Åžifreniz" required>
                 </div>
 
                 <button type="submit" class="btn-login">
-                    <i class="bi bi-box-arrow-in-right"></i> Giriþ Yap
+                    <i class="bi bi-box-arrow-in-right"></i> GiriÅŸ Yap
                 </button>
 
                 <div class="register-link">
-                    <p>Hesabýnýz yok mu? <a href="@Url.Action("Register", "Account")">Kaydol</a></p>
+                    <p>Yetki talepleri iÃ§in birim yÃ¶neticinizle iletiÅŸime geÃ§in.</p>
                 </div>
             }
 
             <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
                 <p style="font-size: 0.85rem; color: #666; text-align: center; margin: 0;">
-                    <strong>Test Hesaplarý:</strong>
+                    <strong>Test HesaplarÄ±:</strong>
                 </p>
                 <p style="font-size: 0.85rem; color: #666; text-align: center; margin: 5px 0;">
                     Admin: <strong>admin</strong> / <strong>admin123</strong>
                 </p>
                 <p style="font-size: 0.85rem; color: #666; text-align: center; margin: 5px 0;">
-                    Kullanýcý: <strong>user</strong> / <strong>user123</strong>
+                    KullanÄ±cÄ±: <strong>user</strong> / <strong>user123</strong>
                 </p>
             </div>
         </div>

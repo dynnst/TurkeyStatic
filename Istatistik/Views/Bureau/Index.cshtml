@@ -1,0 +1,41 @@
+@model List<Istatistik.Controllers.BureauController.BureauItem>
+@{
+    ViewBag.Title = "Veri Giriþi - Büro Seçimi";
+    string border = ViewBag.Border as string ?? "";
+}
+
+<div class="container py-3">
+    <h3 class="mb-1"><i class="bi bi-pencil-square"></i> Veri Giriþi</h3>
+    <div class="text-muted mb-4"><i class="bi bi-building"></i> @border</div>
+
+    @if (Model == null || Model.Count == 0)
+    {
+        <div class="alert alert-warning">
+            @if (string.IsNullOrWhiteSpace(border))
+            {
+                <text>Havalimaný bilginiz (E_User.fldBorder) tanýmlý deðil, bu yüzden büro listelenemiyor. Rol: <strong>@ViewBag.Role</strong>.</text>
+            }
+            else
+            {
+                <text>@border havalimanýnda size atanmýþ bir büro bulunmuyor. Rol: <strong>@ViewBag.Role</strong>. Yetki Yönetimi ekranýndan büro atanmalýdýr.</text>
+            }
+        </div>
+    }
+    else
+    {
+        <p>Veri gireceðiniz büroyu seçin:</p>
+        <div class="row g-3">
+            @foreach (var b in Model)
+            {
+                <div class="col-md-4 col-sm-6">
+                    <a href="@b.Url" class="card text-decoration-none h-100 shadow-sm">
+                        <div class="card-body text-center py-4">
+                            <i class="bi bi-folder2-open fs-1 text-primary"></i>
+                            <h5 class="mt-2 mb-0 text-dark">@b.Name</h5>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+    }
+</div>

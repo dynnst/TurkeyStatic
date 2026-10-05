@@ -1,4 +1,4 @@
-using Istatistik.Models;
+ï»¿using Istatistik.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,13 +12,13 @@ namespace Istatistik.Controllers
 
         public UnitsController()
         {
-            // Ýlk baþlatmada birimler ekle
+            // Ä°lk baÅŸlatmada birimler ekle
             if (units.Count == 0)
             {
-                units.Add(new Unit { UnitId = 1, UnitName = "Suç Önleme", Description = "Suç Önleme Þubesi", IsActive = true });
-                units.Add(new Unit { UnitId = 2, UnitName = "Ýdari Büro", Description = "Ýdari Ýþler Bürosu", IsActive = true });
-                units.Add(new Unit { UnitId = 3, UnitName = "Pasaport Büro", Description = "Pasaport Ýþleri Bürosu", IsActive = true });
-                units.Add(new Unit { UnitId = 4, UnitName = "Trafik", Description = "Trafik Þubesi", IsActive = true });
+                units.Add(new Unit { UnitId = 1, UnitName = "SuÃ§ Ã–nleme", Description = "SuÃ§ Ã–nleme Åžubesi", IsActive = true });
+                units.Add(new Unit { UnitId = 2, UnitName = "Ä°dari BÃ¼ro", Description = "Ä°dari Ä°ÅŸler BÃ¼rosu", IsActive = true });
+                units.Add(new Unit { UnitId = 3, UnitName = "Pasaport BÃ¼ro", Description = "Pasaport Ä°ÅŸleri BÃ¼rosu", IsActive = true });
+                units.Add(new Unit { UnitId = 4, UnitName = "Trafik", Description = "Trafik Åžubesi", IsActive = true });
             }
         }
 

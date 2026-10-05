@@ -1,25 +1,25 @@
-using System;
+ï»¿using System;
 using System.Web.Mvc;
 
 namespace Istatistik.Filters
 {
     /// <summary>
-    /// Birim bazlý yetkilendirme kontrolü
+    /// Birim bazlÄ± yetkilendirme kontrolÃ¼
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
     public class AuthorizeByUnitAttribute : AuthorizeAttribute
     {
         protected override bool AuthorizeCore(System.Web.HttpContextBase httpContext)
         {
-            // Önce standart authorization kontrolü yap
+            // Ã–nce standart authorization kontrolÃ¼ yap
             if (!base.AuthorizeCore(httpContext))
                 return false;
 
-            // Kullanýcý giriþ yaptý mý kontrol et
+            // KullanÄ±cÄ± giriÅŸ yaptÄ± mÄ± kontrol et
             if (httpContext.User == null || !httpContext.User.Identity.IsAuthenticated)
                 return false;
 
-            // Session'da birim bilgisi var mý kontrol et
+            // Session'da birim bilgisi var mÄ± kontrol et
             var userUnit = httpContext.Session["UnitId"];
             return userUnit != null;
         }
@@ -30,14 +30,14 @@ namespace Istatistik.Filters
 
             if (filterContext.Result is HttpUnauthorizedResult)
             {
-                // Yetkisiz eriþim - Login sayfasýna yönlendir
+                // Yetkisiz eriÅŸim - Login sayfasÄ±na yÃ¶nlendir
                 filterContext.Result = new RedirectResult("~/Account/Login");
             }
         }
     }
 
     /// <summary>
-    /// Admin yetkilendirme kontrolü
+    /// Admin yetkilendirme kontrolÃ¼
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
     public class AdminOnlyAttribute : AuthorizeAttribute
@@ -48,7 +48,7 @@ namespace Istatistik.Filters
                 return false;
 
             var userRole = httpContext.Session["UserRole"];
-            return userRole != null && userRole.ToString() == "Admin";
+            return userRole != null && (userRole.ToString() == "SuperAdmin" || userRole.ToString() == "UnitAdmin");
         }
 
         public override void OnAuthorization(AuthorizationContext filterContext)

@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Istatistik.Models
 {
     /// <summary>
-    /// Sistem Kullanýcýlarý
+    /// Sistem KullanÄ±cÄ±larÄ±
     /// </summary>
     public class User
     {
@@ -44,7 +44,7 @@ public virtual Unit Unit { get; set; }
     }
 
     /// <summary>
-    /// Kullanýcý Rolleri
+    /// KullanÄ±cÄ± Rolleri
     /// </summary>
     public class UserRole
     {

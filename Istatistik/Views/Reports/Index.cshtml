@@ -1,0 +1,212 @@
+﻿@{
+    ViewBag.Title = "İstatistik Raporları";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2>İstatistik Raporları</h2>
+            <p class="text-muted">Havalimanı: <strong>@ViewBag.Border</strong></p>
+        </div>
+    </div>
+
+    @Html.AntiForgeryToken()
+
+    <!-- Filtre Paneli -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-funnel"></i> Filtreler</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label for="dataType" class="form-label">Veri Türü</label>
+                            <select id="dataType" class="form-select">
+                                <option value="yolcuucak">Yolcu/Uçak İstatistikleri</option>
+                                <option value="gunluk">Günlük Zaman Serisi</option>
+                                <option value="inad">İNAD Kayıtları</option>
+                                <option value="tahdit">Tahdit Kayıtları</option>
+                                <option value="haftalik">Haftalık Olay Çizelgesi</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="startDate" class="form-label">Başlangıç Tarihi</label>
+                            <input type="date" id="startDate" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                        </div>
+                        <div class="col-md-2">
+                            <label for="endDate" class="form-label">Bitiş Tarihi</label>
+                            <input type="date" id="endDate" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                        </div>
+                        <div class="col-md-2">
+                            <label for="periodType" class="form-label">Dönem Tipi</label>
+                            <select id="periodType" class="form-select">
+                                <option value="daily">Günlük</option>
+                                <option value="weekly">Haftalık</option>
+                                <option value="monthly" selected>Aylık</option>
+                                <option value="yearly">Yıllık</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button id="btnFilter" class="btn btn-primary w-100">
+                                <i class="bi bi-search"></i> Filtrele
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hata Container -->
+    <div id="error-container"></div>
+
+    <!-- Loading Spinner -->
+    <div id="loader" class="text-center my-4" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Yükleniyor...</span>
+        </div>
+        <p class="mt-2">Veriler yükleniyor...</p>
+    </div>
+
+    <!-- Sekmeli İçerik -->
+    <ul class="nav nav-tabs" id="reportTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="chart-tab-btn" data-bs-toggle="tab" data-bs-target="#chart-tab" type="button" role="tab">
+                <i class="bi bi-bar-chart-line"></i> Grafik
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="table-tab-btn" data-bs-toggle="tab" data-bs-target="#table-tab" type="button" role="tab">
+                <i class="bi bi-table"></i> Tablo
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="comparison-tab-btn" data-bs-toggle="tab" data-bs-target="#comparison-tab" type="button" role="tab">
+                <i class="bi bi-arrow-left-right"></i> Karşılaştırma
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="reportTabsContent">
+        <!-- Grafik Sekmesi -->
+        <div class="tab-pane fade show active" id="chart-tab" role="tabpanel">
+            <div class="card mt-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Grafik Görünümü</h5>
+                    <div>
+                        <select id="chartType" class="form-select form-select-sm d-inline-block w-auto me-2">
+                            <option value="line">Çizgi Grafik</option>
+                            <option value="bar">Sütun Grafik</option>
+                            <option value="pie">Pasta Grafik</option>
+                        </select>
+                        <button id="btnDownloadPng" class="btn btn-sm btn-outline-secondary me-1">
+                            <i class="bi bi-download"></i> PNG
+                        </button>
+                        <button id="btnDownloadJpeg" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-download"></i> JPEG
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body" style="height: 500px;">
+                    <canvas id="reportChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tablo Sekmesi -->
+        <div class="tab-pane fade" id="table-tab" role="tabpanel">
+            <div class="card mt-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Tablo Görünümü</h5>
+                    <div>
+                        <label class="me-2">Sayfa Boyutu:</label>
+                        <select id="pageSize" class="form-select form-select-sm d-inline-block w-auto me-3">
+                            <option value="10">10</option>
+                            <option value="25" selected>25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                        <button id="btnExportCsv" class="btn btn-sm btn-success me-1">
+                            <i class="bi bi-file-earmark-spreadsheet"></i> CSV
+                        </button>
+                        <button id="btnExportExcel" class="btn btn-sm btn-success">
+                            <i class="bi bi-file-earmark-excel"></i> Excel
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="tableContainer" class="table-responsive"></div>
+                    <div id="tableSummary" class="mt-3 p-3 bg-light rounded"></div>
+                    <nav id="tablePagination" class="mt-3"></nav>
+                </div>
+            </div>
+        </div>
+
+        <!-- Karşılaştırma Sekmesi -->
+        <div class="tab-pane fade" id="comparison-tab" role="tabpanel">
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Dönem Karşılaştırma</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="border rounded p-3 bg-light">
+                                <h6>Dönem 1</h6>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="form-label">Başlangıç</label>
+                                        <input type="date" id="p1StartDate" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">Bitiş</label>
+                                        <input type="date" id="p1EndDate" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border rounded p-3 bg-light">
+                                <h6>Dönem 2</h6>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="form-label">Başlangıç</label>
+                                        <input type="date" id="p2StartDate" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">Bitiş</label>
+                                        <input type="date" id="p2EndDate" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <button id="btnCompare" class="btn btn-primary w-100">
+                                <i class="bi bi-arrow-left-right"></i> Karşılaştır
+                            </button>
+                        </div>
+                    </div>
+                    <div id="comparisonResults" style="display: none;">
+                        <div id="comparisonTable"></div>
+                        <div class="mt-4" style="height: 400px;">
+                            <canvas id="comparisonChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="~/Scripts/reports/helpers.js"></script>
+    <script src="~/Scripts/reports/api-client.js"></script>
+    <script src="~/Scripts/reports/chart-module.js"></script>
+    <script src="~/Scripts/reports/table-module.js"></script>
+    <script src="~/Scripts/reports/comparison-module.js"></script>
+    <script src="~/Scripts/reports/main.js"></script>
+}

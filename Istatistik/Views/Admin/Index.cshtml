@@ -1,0 +1,327 @@
+﻿@{
+    ViewBag.Title = "Yetki Yönetimi";
+    bool isSuper = ViewBag.IsSuperAdmin == true;
+    string ownBorder = ViewBag.OwnBorder as string ?? "";
+}
+
+<div class="container py-3" id="adminApp" data-super="@(isSuper ? "1" : "0")" data-border="@ownBorder">
+    @Html.AntiForgeryToken()
+
+    <h3 class="mb-3"><i class="bi bi-people"></i> Yetki Yönetimi</h3>
+
+    <div id="alertBox"></div>
+
+    <div class="row g-2 align-items-end mb-3">
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">Havalimanı</label>
+            @if (isSuper)
+            {
+                <select id="borderSelect" class="form-select"></select>
+            }
+            else
+            {
+                <input type="text" class="form-control" value="@ownBorder" readonly />
+                <input type="hidden" id="borderSelect" value="@ownBorder" />
+            }
+        </div>
+        <div class="col-md-4">
+            <label class="form-label fw-semibold">Kullanıcı ara (sicil / ad)</label>
+            <input type="text" id="searchBox" class="form-control" placeholder="Ara..." />
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-primary w-100" id="searchBtn"><i class="bi bi-search"></i> Ara</button>
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs mb-3" id="tabs">
+        <li class="nav-item"><a class="nav-link active" href="#" data-tab="users">Kullanıcılar</a></li>
+        <li class="nav-item"><a class="nav-link" href="#" data-tab="bureaus">Bürolar</a></li>
+        @if (isSuper)
+        {
+            <li class="nav-item"><a class="nav-link" href="#" data-tab="supers">Sistem Yöneticileri</a></li>
+        }
+    </ul>
+
+    <div id="tab-users">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Sicil</th><th>Ad Soyad</th><th>Rol</th><th>Durum</th><th style="min-width:260px">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody id="usersBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="tab-bureaus" style="display:none">
+        <div class="row g-2 mb-3">
+            <div class="col-md-4"><input id="newBureauName" class="form-control" placeholder="Büro adı (örn. Pasaport Bürosu)" /></div>
+            <div class="col-md-3"><input id="newBureauCode" class="form-control" placeholder="Kod (isteğe bağlı)" /></div>
+            <div class="col-md-2"><button class="btn btn-success w-100" id="addBureauBtn"><i class="bi bi-plus-circle"></i> Büro Ekle</button></div>
+        </div>
+        <table class="table table-sm align-middle">
+            <thead class="table-light"><tr><th>Kod</th><th>Ad</th><th>Durum</th><th></th></tr></thead>
+            <tbody id="bureausBody"></tbody>
+        </table>
+    </div>
+
+    @if (isSuper)
+    {
+        <div id="tab-supers" style="display:none">
+            <div class="alert alert-info">
+                Yeni Sistem Yöneticisi eklemek için <b>Kullanıcılar</b> sekmesinde ilgili kişinin rolünü
+                "Sistem Yöneticisi" olarak seçip kaydedin.
+            </div>
+            <table class="table table-sm align-middle">
+                <thead class="table-light"><tr><th>Sicil</th><th>Havalimanı</th><th>Atayan</th><th>Tarih</th><th></th></tr></thead>
+                <tbody id="supersBody"></tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@section scripts {
+    <script>
+    (function () {
+        var app = document.getElementById('adminApp');
+        var isSuper = app.getAttribute('data-super') === '1';
+        var bureauCache = [];
+        var ROLE_NAMES = { SuperAdmin: 'Sistem Yöneticisi', UnitAdmin: 'Birim Yöneticisi', BureauUser: 'Büro Kullanıcısı' };
+
+        function token() { return document.querySelector('#adminApp input[name="__RequestVerificationToken"]').value; }
+        function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
+        function border() { return document.getElementById('borderSelect').value; }
+
+        function showMsg(msg, ok) {
+            var box = document.getElementById('alertBox');
+            box.innerHTML = '<div class="alert alert-' + (ok ? 'success' : 'danger') + ' alert-dismissible">' + esc(msg) +
+                '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+        }
+
+        function getJson(url) {
+            return fetch(url, { credentials: 'same-origin' }).then(function (r) { return r.json(); });
+        }
+
+        function post(url, params) {
+            var body = new URLSearchParams();
+            body.append('__RequestVerificationToken', token());
+            Object.keys(params || {}).forEach(function (k) {
+                var v = params[k];
+                if (Array.isArray(v)) v.forEach(function (x) { body.append(k, x); });
+                else if (v !== undefined && v !== null) body.append(k, v);
+            });
+            return fetch(url, {
+                method: 'POST', credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body.toString()
+            }).then(function (r) { return r.json(); });
+        }
+
+        function q(params) {
+            return Object.keys(params).map(function (k) { return k + '=' + encodeURIComponent(params[k] || ''); }).join('&');
+        }
+
+        function loadBorders() {
+            if (!isSuper) return Promise.resolve();
+            return getJson('@Url.Action("Borders", "Admin")').then(function (res) {
+                var sel = document.getElementById('borderSelect');
+                sel.innerHTML = '';
+                (res.data || []).forEach(function (b) {
+                    var o = document.createElement('option'); o.value = b; o.textContent = b; sel.appendChild(o);
+                });
+            });
+        }
+
+        function loadBureaus() {
+            return getJson('@Url.Action("Bureaus", "Admin")?' + q({ border: border() })).then(function (res) {
+                bureauCache = res.success ? res.data : [];
+                var tb = document.getElementById('bureausBody');
+                tb.innerHTML = '';
+                bureauCache.forEach(function (b) {
+                    var tr = document.createElement('tr');
+                    tr.innerHTML = '<td>' + esc(b.Code) + '</td><td>' + esc(b.Name) + '</td><td>' +
+                        (b.IsActive ? '<span class="badge bg-success">Aktif</span>' : '<span class="badge bg-secondary">Pasif</span>') +
+                        '</td><td></td>';
+                    var btn = document.createElement('button');
+                    btn.className = 'btn btn-sm btn-outline-secondary';
+                    btn.textContent = b.IsActive ? 'Pasifleştir' : 'Aktifleştir';
+                    btn.onclick = function () {
+                        post('@Url.Action("SetBureauActive", "Admin")', { bureauId: b.BureauId, isActive: !b.IsActive })
+                            .then(function (r) { showMsg(r.success ? 'Güncellendi' : r.message, r.success); loadBureaus().then(loadUsers); });
+                    };
+                    tr.lastChild.appendChild(btn);
+                    tb.appendChild(tr);
+                });
+            });
+        }
+
+        function roleSelect(current) {
+            var sel = document.createElement('select');
+            sel.className = 'form-select form-select-sm d-inline-block w-auto';
+            var roles = ['BureauUser'];
+            if (isSuper) roles = ['BureauUser', 'UnitAdmin', 'SuperAdmin'];
+            roles.forEach(function (r) {
+                var o = document.createElement('option'); o.value = r; o.textContent = ROLE_NAMES[r];
+                if (r === current) o.selected = true;
+                sel.appendChild(o);
+            });
+            return sel;
+        }
+
+        function loadUsers() {
+            var tb = document.getElementById('usersBody');
+            tb.innerHTML = '<tr><td colspan="5">Yükleniyor...</td></tr>';
+            var url = '@Url.Action("Users", "Admin")?' + q({ border: border(), search: document.getElementById('searchBox').value });
+            return getJson(url).then(function (res) {
+                tb.innerHTML = '';
+                if (!res.success) { showMsg(res.message, false); return; }
+                if (!res.data.length) { tb.innerHTML = '<tr><td colspan="5">Kullanıcı bulunamadı.</td></tr>'; return; }
+
+                res.data.forEach(function (u) {
+                    var tr = document.createElement('tr');
+                    var roleText = u.IsConfigSuperAdmin ? 'Sistem Yöneticisi (yapılandırma)' : (u.HasAssignment ? ROLE_NAMES[u.Role] || u.Role : 'Yetkisiz');
+                    var status = !u.HasAssignment ? '<span class="badge bg-light text-dark">Yetki yok</span>'
+                        : (u.IsActive ? '<span class="badge bg-success">Aktif</span>' : '<span class="badge bg-secondary">Pasif</span>');
+                    tr.innerHTML = '<td>' + esc(u.Sicil) + '</td><td>' + esc(u.FullName) + '</td><td>' + esc(roleText) + '</td><td>' + status + '</td><td class="actions"></td>';
+                    var actions = tr.querySelector('.actions');
+
+                    if (u.IsConfigSuperAdmin) { actions.textContent = '-'; tb.appendChild(tr); return; }
+
+                    var sel = roleSelect(u.Role || 'BureauUser');
+                    var save = document.createElement('button');
+                    save.className = 'btn btn-sm btn-primary ms-1';
+                    save.textContent = u.HasAssignment ? 'Rolü Kaydet' : 'Yetki Ver';
+                    save.onclick = function () {
+                        if (sel.value === 'SuperAdmin' && !confirm(u.FullName + ' kişisine tüm havalimanlarına erişen Sistem Yöneticisi yetkisi verilsin mi?')) return;
+                        post('@Url.Action("SetRole", "Admin")', { sicil: u.Sicil, role: sel.value, isActive: true })
+                            .then(function (r) { showMsg(r.success ? 'Yetki kaydedildi' : r.message, r.success); loadUsers(); });
+                    };
+                    actions.appendChild(sel); actions.appendChild(save);
+
+                    if (u.HasAssignment) {
+                        var bBtn = document.createElement('button');
+                        bBtn.className = 'btn btn-sm btn-outline-primary ms-1';
+                        bBtn.textContent = 'Bürolar';
+                        bBtn.onclick = function () { toggleBureauPanel(tr, u); };
+                        actions.appendChild(bBtn);
+
+                        var del = document.createElement('button');
+                        del.className = 'btn btn-sm btn-outline-danger ms-1';
+                        del.textContent = 'Yetkiyi Kaldır';
+                        del.onclick = function () {
+                            if (!confirm(u.FullName + ' kişisinin yetkisi kaldırılsın mı?')) return;
+                            post('@Url.Action("RemoveAssignment", "Admin")', { sicil: u.Sicil })
+                                .then(function (r) { showMsg(r.success ? 'Yetki kaldırıldı' : r.message, r.success); loadUsers(); });
+                        };
+                        actions.appendChild(del);
+                    }
+                    tb.appendChild(tr);
+                });
+            });
+        }
+
+        function toggleBureauPanel(tr, u) {
+            var next = tr.nextSibling;
+            if (next && next.className === 'bureau-panel') { next.remove(); return; }
+
+            var panel = document.createElement('tr');
+            panel.className = 'bureau-panel';
+            var td = document.createElement('td');
+            td.colSpan = 5;
+            td.className = 'bg-light';
+
+            var active = bureauCache.filter(function (b) { return b.IsActive; });
+            if (u.Role !== 'BureauUser') {
+                td.innerHTML = '<i>Yönetici rolleri tüm bürolara erişir.</i>';
+            } else if (!active.length) {
+                td.innerHTML = '<i>Bu havalimanında aktif büro yok.</i>';
+            } else {
+                var wrap = document.createElement('div');
+                active.forEach(function (b) {
+                    var id = 'b_' + u.Sicil + '_' + b.BureauId;
+                    var d = document.createElement('div');
+                    d.className = 'form-check form-check-inline';
+                    var cb = document.createElement('input');
+                    cb.type = 'checkbox'; cb.className = 'form-check-input'; cb.id = id; cb.value = b.BureauId;
+                    cb.checked = u.BureauIds.indexOf(b.BureauId) >= 0;
+                    var lb = document.createElement('label');
+                    lb.className = 'form-check-label'; lb.htmlFor = id; lb.textContent = b.Name;
+                    d.appendChild(cb); d.appendChild(lb); wrap.appendChild(d);
+                });
+                var btn = document.createElement('button');
+                btn.className = 'btn btn-sm btn-success ms-2';
+                btn.textContent = 'Büroları Kaydet';
+                btn.onclick = function () {
+                    var ids = Array.prototype.slice.call(wrap.querySelectorAll('input:checked')).map(function (c) { return c.value; });
+                    post('@Url.Action("SetUserBureaus", "Admin")', { sicil: u.Sicil, bureauIds: ids })
+                        .then(function (r) { showMsg(r.success ? 'Büro yetkileri kaydedildi' : r.message, r.success); if (r.success) loadUsers(); });
+                };
+                td.appendChild(wrap); td.appendChild(btn);
+            }
+            panel.appendChild(td);
+            tr.parentNode.insertBefore(panel, tr.nextSibling);
+        }
+
+        function loadSupers() {
+            if (!isSuper) return;
+            getJson('@Url.Action("SuperAdmins", "Admin")').then(function (res) {
+                var tb = document.getElementById('supersBody');
+                tb.innerHTML = '';
+                if (!res.success) { showMsg(res.message, false); return; }
+                if (!res.data.length) { tb.innerHTML = '<tr><td colspan="5">Henüz yönetim ekranından atanmış Sistem Yöneticisi yok.</td></tr>'; return; }
+                res.data.forEach(function (a) {
+                    var tr = document.createElement('tr');
+                    var dt = a.CreatedDate ? new Date(parseInt(String(a.CreatedDate).replace(/\D/g, ''), 10)).toLocaleDateString('tr-TR') : '';
+                    tr.innerHTML = '<td>' + esc(a.Sicil) + '</td><td>' + esc(a.Border) + '</td><td>' + esc(a.CreatedBy) + '</td><td>' + esc(dt) + '</td><td></td>';
+                    var del = document.createElement('button');
+                    del.className = 'btn btn-sm btn-outline-danger';
+                    del.textContent = 'Yetkiyi Kaldır';
+                    del.onclick = function () {
+                        if (!confirm(a.Sicil + ' sicilli Sistem Yöneticisi yetkisi kaldırılsın mı?')) return;
+                        post('@Url.Action("RemoveAssignment", "Admin")', { sicil: a.Sicil })
+                            .then(function (r) { showMsg(r.success ? 'Yetki kaldırıldı' : r.message, r.success); loadSupers(); loadUsers(); });
+                    };
+                    tr.lastChild.appendChild(del);
+                    tb.appendChild(tr);
+                });
+            });
+        }
+
+        document.getElementById('tabs').addEventListener('click', function (e) {
+            var t = e.target.getAttribute('data-tab');
+            if (!t) return;
+            e.preventDefault();
+            Array.prototype.forEach.call(document.querySelectorAll('#tabs .nav-link'), function (a) { a.classList.remove('active'); });
+            e.target.classList.add('active');
+            ['users', 'bureaus', 'supers'].forEach(function (n) {
+                var el = document.getElementById('tab-' + n);
+                if (el) el.style.display = (n === t) ? '' : 'none';
+            });
+            if (t === 'supers') loadSupers();
+        });
+
+        document.getElementById('searchBtn').onclick = loadUsers;
+        document.getElementById('searchBox').addEventListener('keydown', function (e) { if (e.key === 'Enter') loadUsers(); });
+        if (isSuper) document.getElementById('borderSelect').onchange = function () { loadBureaus().then(loadUsers); };
+
+        document.getElementById('addBureauBtn').onclick = function () {
+            post('@Url.Action("AddBureau", "Admin")', {
+                border: border(),
+                name: document.getElementById('newBureauName').value,
+                code: document.getElementById('newBureauCode').value
+            }).then(function (r) {
+                showMsg(r.success ? 'Büro eklendi' : r.message, r.success);
+                if (r.success) {
+                    document.getElementById('newBureauName').value = '';
+                    document.getElementById('newBureauCode').value = '';
+                    loadBureaus().then(loadUsers);
+                }
+            });
+        };
+
+        loadBorders().then(function () { return loadBureaus(); }).then(loadUsers);
+    })();
+    </script>
+}

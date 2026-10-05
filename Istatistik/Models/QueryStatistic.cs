@@ -1,11 +1,11 @@
-using System;
+ï»¿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Istatistik.Models
 {
     /// <summary>
-    /// GBT (Genel Biliþim Taramasý) ve YTS (Yabancý Taramasý) Sorgu Ýstatistikleri
+    /// GBT (Genel BiliÅŸim TaramasÄ±) ve YTS (YabancÄ± TaramasÄ±) Sorgu Ä°statistikleri
     /// </summary>
     public class QueryStatistic
     {
@@ -21,7 +21,7 @@ public virtual Unit Unit { get; set; }
 
         [Required]
         [StringLength(50)]
-        public string Shift { get; set; } // Vardia/Büro bilgisi
+        public string Shift { get; set; } // Vardia/BÃ¼ro bilgisi
 
         [Range(0, int.MaxValue)]
         public int PersonQueriedCount { get; set; } = 0;
@@ -30,7 +30,7 @@ public virtual Unit Unit { get; set; }
         public int PersonArrestedSearchedCount { get; set; } = 0;
 
         [StringLength(50)]
-        public string OperationType { get; set; } // Aylýk/Günlük takibat
+        public string OperationType { get; set; } // AylÄ±k/GÃ¼nlÃ¼k takibat
 
         [StringLength(500)]
         public string Notes { get; set; }

@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
@@ -6,7 +6,7 @@ namespace Istatistik.Models
 {
     /// <summary>
     /// Birim (Departman) Modeli
-    /// Suç Önleme, Ýdari Büro, Pasaport Büro, vb.
+    /// SuÃ§ Ã–nleme, Ä°dari BÃ¼ro, Pasaport BÃ¼ro, vb.
     /// </summary>
     public class Unit
     {

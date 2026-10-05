@@ -39,7 +39,7 @@ function loadUnits() {
             }
         })
         .catch(error => {
-            showAlert('Birimler yüklenirken hata: ' + error.message, 'danger');
+            showAlert('Birimler yÃ¼klenirken hata: ' + error.message, 'danger');
             console.error('Error loading units:', error);
         })
         .finally(() => showSpinner(false));
@@ -47,48 +47,27 @@ function loadUnits() {
 
 function populateUnitSelect(units) {
     const select = document.getElementById('unitSelect');
-    select.innerHTML = '<option value="">Birim Seçiniz...</option>';
+    select.innerHTML = '<option value="">Birim SeÃ§iniz...</option>';
 
-    function populateUnitSelect(units) {
-        const select = document.getElementById('unitSelect');
-        select.innerHTML = '<option value="">Birim Seçiniz...</option>';
+    // Sunucu yalnÄ±zca kullanÄ±cÄ±nÄ±n yetkili olduÄŸu bÃ¼rolarÄ± dÃ¶ndÃ¼rÃ¼r
+    units.forEach(unit => {
+        const option = document.createElement('option');
+        option.value = unit.UnitId;
+        option.textContent = unit.UnitName;
+        select.appendChild(option);
+    });
 
-        // Admin deðilse sadece kendi birimini göster
-        if (userRole !== "Admin") {
-            const userUnit = units.find(u => u.UnitId === userUnitId);
-            if (userUnit) {
-                const option = document.createElement('option');
-                option.value = userUnit.UnitId;
-                option.textContent = userUnit.UnitName;
-                select.appendChild(option);
-
-                // Otomatik olarak kendi birimini seç
-                select.value = userUnit.UnitId;
-                currentUnit = userUnit.UnitId;
-                select.disabled = true; // Admin deðilse birim seçimini kapalý yap
-                loadDataForCurrentDate();
-            }
-        } else {
-            // Admin ise tüm birimleri göster
-            units.forEach(unit => {
-                const option = document.createElement('option');
-                option.value = unit.UnitId;
-                option.textContent = unit.UnitName;
-                select.appendChild(option);
-            });
-
-            // Admin için ilk birim seçili kalsýn
-            if (units.length > 0) {
-                select.value = units[0].UnitId;
-                currentUnit = units[0].UnitId;
-                loadDataForCurrentDate();
-            }
-        }
+    if (units.length > 0) {
+        select.value = units[0].UnitId;
+        currentUnit = units[0].UnitId;
+        loadDataForCurrentDate();
+    } else {
+        showAlert('Size atanmÄ±ÅŸ bir bÃ¼ro yok. Birim yÃ¶neticinizle iletiÅŸime geÃ§in.', 'warning');
     }
 }
 
 function setCurrentUser() {
-    // Sunucu tarafýndan gönderilen kullanýcý bilgilerini al
+    // Sunucu tarafÄ±ndan gÃ¶nderilen kullanÄ±cÄ± bilgilerini al
     const userInfo = document.getElementById('userInfo');
     if (userInfo) {
         const fullName = userInfo.getAttribute('data-fullname');
@@ -98,7 +77,10 @@ function setCurrentUser() {
         userRole = role;
         userUnitId = parseInt(unitId);
 
-        document.getElementById('kullaniciAdi').textContent = `?? ${fullName} (${role})`;
+        const userNameEl = document.getElementById('kullaniciAdi');
+        if (userNameEl) {
+            userNameEl.textContent = `ðŸ‘¤ ${fullName} (${role})`;
+        }
     }
 }
 
@@ -144,7 +126,7 @@ function saveCrimeStatistic() {
     const entryDate = document.getElementById('entryDate').value;
 
     if (!unitId || !entryDate) {
-        showAlert('Lütfen Birim ve Tarih seçiniz!', 'warning');
+        showAlert('LÃ¼tfen Birim ve Tarih seÃ§iniz!', 'warning');
         return;
     }
 
@@ -163,7 +145,7 @@ function saveCrimeStatistic() {
 
     // Validation
     if (!crimeData.CrimeType.trim()) {
-        showAlert('Suç Türü boþ olamaz!', 'warning');
+        showAlert('SuÃ§ TÃ¼rÃ¼ boÅŸ olamaz!', 'warning');
         return;
     }
 
@@ -178,12 +160,12 @@ function saveCrimeStatistic() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showAlert('Suç istatistiði baþarýyla kaydedildi!', 'success');
+                showAlert('SuÃ§ istatistiÄŸi baÅŸarÄ±yla kaydedildi!', 'success');
                 clearForm('crimeForm');
                 loadCrimeStatistics();
                 updateSummaryCards();
             } else {
-                showAlert(data.message || 'Kayýt hatasý!', 'danger');
+                showAlert(data.message || 'KayÄ±t hatasÄ±!', 'danger');
             }
         })
         .catch(error => {
@@ -238,12 +220,12 @@ function populateCrimeTable(crimes) {
     });
 
     if (crimes.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Veri bulunamadý</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Veri bulunamadÄ±</td></tr>';
     }
 }
 
 function deleteCrimeStatistic(id) {
-    if (!confirm('Silmek istediðinizden emin misiniz?')) return;
+    if (!confirm('Silmek istediÄŸinizden emin misiniz?')) return;
 
     showSpinner(true);
     fetch(`${API_BASE_URL}/Home/DeleteCrimeStatistic`, {
@@ -256,7 +238,7 @@ function deleteCrimeStatistic(id) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showAlert('Kayýt baþarýyla silindi!', 'success');
+                showAlert('KayÄ±t baÅŸarÄ±yla silindi!', 'success');
                 loadCrimeStatistics();
                 updateSummaryCards();
             }
@@ -276,7 +258,7 @@ function saveQueryStatistic() {
     const entryDate = document.getElementById('entryDate').value;
 
     if (!unitId || !entryDate) {
-        showAlert('Lütfen Birim ve Tarih seçiniz!', 'warning');
+        showAlert('LÃ¼tfen Birim ve Tarih seÃ§iniz!', 'warning');
         return;
     }
 
@@ -302,7 +284,7 @@ function saveQueryStatistic() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showAlert('Sorgu istatistiði baþarýyla kaydedildi!', 'success');
+                showAlert('Sorgu istatistiÄŸi baÅŸarÄ±yla kaydedildi!', 'success');
                 clearForm('queryForm');
                 loadQueryStatistics();
                 updateSummaryCards();
@@ -359,12 +341,12 @@ function populateQueryTable(queries) {
     });
 
     if (queries.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Veri bulunamadý</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Veri bulunamadÄ±</td></tr>';
     }
 }
 
 function deleteQueryStatistic(id) {
-    if (!confirm('Silmek istediðinizden emin misiniz?')) return;
+    if (!confirm('Silmek istediÄŸinizden emin misiniz?')) return;
 
     showSpinner(true);
     fetch(`${API_BASE_URL}/Home/DeleteQueryStatistic`, {
@@ -377,7 +359,7 @@ function deleteQueryStatistic(id) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showAlert('Kayýt baþarýyla silindi!', 'success');
+                showAlert('KayÄ±t baÅŸarÄ±yla silindi!', 'success');
                 loadQueryStatistics();
                 updateSummaryCards();
             }
@@ -397,7 +379,7 @@ function saveActivityStatistic() {
     const entryDate = document.getElementById('entryDate').value;
 
     if (!unitId || !entryDate) {
-        showAlert('Lütfen Birim ve Tarih seçiniz!', 'warning');
+        showAlert('LÃ¼tfen Birim ve Tarih seÃ§iniz!', 'warning');
         return;
     }
 
@@ -424,7 +406,7 @@ function saveActivityStatistic() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showAlert('Arama/Yakalama faaliyeti baþarýyla kaydedildi!', 'success');
+                showAlert('Arama/Yakalama faaliyeti baÅŸarÄ±yla kaydedildi!', 'success');
                 clearForm('activityForm');
                 loadActivityStatistics();
                 updateSummaryCards();
@@ -481,12 +463,12 @@ function populateActivityTable(activities) {
     });
 
     if (activities.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Veri bulunamadý</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Veri bulunamadÄ±</td></tr>';
     }
 }
 
 function deleteActivityStatistic(id) {
-    if (!confirm('Silmek istediðinizden emin misiniz?')) return;
+    if (!confirm('Silmek istediÄŸinizden emin misiniz?')) return;
 
     showSpinner(true);
     fetch(`${API_BASE_URL}/Home/DeleteActivity`, {
@@ -499,7 +481,7 @@ function deleteActivityStatistic(id) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showAlert('Kayýt baþarýyla silindi!', 'success');
+                showAlert('KayÄ±t baÅŸarÄ±yla silindi!', 'success');
                 loadActivityStatistics();
                 updateSummaryCards();
             }

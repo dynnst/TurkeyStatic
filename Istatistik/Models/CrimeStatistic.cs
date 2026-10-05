@@ -1,11 +1,11 @@
-using System;
+ï»¿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Istatistik.Models
 {
     /// <summary>
-    /// Suç Önleme Biriminin Ceraim (Olay/Suç) Ýstatistikleri
+    /// SuÃ§ Ã–nleme Biriminin Ceraim (Olay/SuÃ§) Ä°statistikleri
     /// </summary>
     public class CrimeStatistic
     {

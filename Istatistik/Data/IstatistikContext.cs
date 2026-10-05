@@ -16,5 +16,13 @@ namespace Istatistik.Models
         public DbSet<QueryStatistic> QueryStatistics { get; set; }
         public DbSet<Unit> Units { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<YolcuUcakIstatistik> YolcuUcakIstatistikleri { get; set; }
+        public DbSet<InadYolcu> InadYolcular { get; set; }
+        public DbSet<TahditKayit> TahditKayitlari { get; set; }
+        public DbSet<GunlukZamanSerisiYolcu> GunlukZamanSerisiYolcular { get; set; }
+        public DbSet<HaftalikOlayCizelgesi> HaftalikOlayCizelgeleri { get; set; }
+        public DbSet<Bureau> Bureaus { get; set; }
+        public DbSet<UserAssignment> UserAssignments { get; set; }
+        public DbSet<UserBureau> UserBureaus { get; set; }
     }
 }
