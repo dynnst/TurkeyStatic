@@ -35,19 +35,18 @@ namespace Istatistik.Controllers
             return View();
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpGet]
         public JsonResult Get(string bureau, string type, int? id, int? year, int? month)
         {
             try
             {
                 var s = GetService(bureau);
                 var data = s.Get(type, id, year, month);
-                return Json(new { success = true, data = data });
+                return Json(new { success = true, data = data }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
 

@@ -19,6 +19,8 @@ namespace Istatistik.Services
         {
             if (id.HasValue && id > 0)
             {
+                if (type == "idari") return _db.IdariBuroIstatistikleri.FirstOrDefault(x => x.Id == id && x.Border == _border);
+                if (type == "guvenlik") return _db.GuvenlikHizmetleriIstatistikleri.FirstOrDefault(x => x.Id == id && x.Border == _border);
                 if (type == "bilgitek") return _db.BilgiTeknolojileriIstatistikleri.FirstOrDefault(x => x.Id == id && x.Border == _border);
                 if (type == "cctv") return _db.CctvIstatistikleri.FirstOrDefault(x => x.Id == id && x.Border == _border);
                 if (type == "trafik") return _db.TrafikIstatistikleri.FirstOrDefault(x => x.Id == id && x.Border == _border);
@@ -28,9 +30,11 @@ namespace Istatistik.Services
                 if (type == "seyahat") return _db.SeyahatBelgesiRiskAnalizleri.FirstOrDefault(x => x.Id == id && x.Border == _border);
             }
 
-            var qYil = year ?? DateTime.Today.Year;
+            var qYil = year ?? 0;
             var qAy = month ?? 0;
 
+            if (type == "idari") return Query(_db.IdariBuroIstatistikleri, qYil, qAy);
+            if (type == "guvenlik") return Query(_db.GuvenlikHizmetleriIstatistikleri, qYil, qAy);
             if (type == "bilgitek") return Query(_db.BilgiTeknolojileriIstatistikleri, qYil, qAy);
             if (type == "cctv") return Query(_db.CctvIstatistikleri, qYil, qAy);
             if (type == "trafik") return Query(_db.TrafikIstatistikleri, qYil, qAy);
@@ -44,19 +48,20 @@ namespace Istatistik.Services
 
         private object Query<T>(IQueryable<T> set, int year, int month) where T : class
         {
-            // Reflection for basic querying, or dynamic LINQ.
-            // But since all our models have Border and Tarih:
             var param = System.Linq.Expressions.Expression.Parameter(typeof(T), "x");
             var borderProp = System.Linq.Expressions.Expression.Property(param, "Border");
             var borderVal = System.Linq.Expressions.Expression.Constant(_border);
-            var borderEq = System.Linq.Expressions.Expression.Equal(borderProp, borderVal);
+            var filter = System.Linq.Expressions.Expression.Equal(borderProp, borderVal);
 
             var tarihProp = System.Linq.Expressions.Expression.Property(param, "Tarih");
-            var yearProp = System.Linq.Expressions.Expression.Property(tarihProp, "Year");
-            var yearVal = System.Linq.Expressions.Expression.Constant(year);
-            var yearEq = System.Linq.Expressions.Expression.Equal(yearProp, yearVal);
 
-            var filter = System.Linq.Expressions.Expression.AndAlso(borderEq, yearEq);
+            if (year > 0)
+            {
+                var yearProp = System.Linq.Expressions.Expression.Property(tarihProp, "Year");
+                var yearVal = System.Linq.Expressions.Expression.Constant(year);
+                var yearEq = System.Linq.Expressions.Expression.Equal(yearProp, yearVal);
+                filter = System.Linq.Expressions.Expression.AndAlso(filter, yearEq);
+            }
 
             if (month > 0)
             {
@@ -67,8 +72,6 @@ namespace Istatistik.Services
             }
 
             var lambda = System.Linq.Expressions.Expression.Lambda<Func<T, bool>>(filter, param);
-            
-            // Default order by Tarih desc
             var orderByExp = System.Linq.Expressions.Expression.Lambda<Func<T, DateTime>>(tarihProp, param);
 
             return set.Where(lambda).OrderByDescending(orderByExp).Take(500).ToList();
@@ -76,6 +79,8 @@ namespace Istatistik.Services
 
         public object Save(string type, string payload)
         {
+            if (type == "idari") return SaveEntity<IdariBuroIstatistik>(payload, _db.IdariBuroIstatistikleri);
+            if (type == "guvenlik") return SaveEntity<GuvenlikHizmetleriIstatistik>(payload, _db.GuvenlikHizmetleriIstatistikleri);
             if (type == "bilgitek") return SaveEntity<BilgiTeknolojileriIstatistik>(payload, _db.BilgiTeknolojileriIstatistikleri);
             if (type == "cctv") return SaveEntity<CctvIstatistik>(payload, _db.CctvIstatistikleri);
             if (type == "trafik") return SaveEntity<TrafikIstatistik>(payload, _db.TrafikIstatistikleri);
@@ -138,7 +143,9 @@ namespace Istatistik.Services
 
         public void Delete(string type, int id)
         {
-            if (type == "bilgitek") DeleteEntity(_db.BilgiTeknolojileriIstatistikleri, id);
+            if (type == "idari") DeleteEntity(_db.IdariBuroIstatistikleri, id);
+            else if (type == "guvenlik") DeleteEntity(_db.GuvenlikHizmetleriIstatistikleri, id);
+            else if (type == "bilgitek") DeleteEntity(_db.BilgiTeknolojileriIstatistikleri, id);
             else if (type == "cctv") DeleteEntity(_db.CctvIstatistikleri, id);
             else if (type == "trafik") DeleteEntity(_db.TrafikIstatistikleri, id);
             else if (type == "gbtuyap") DeleteEntity(_db.GbtUyapSorgulari, id);

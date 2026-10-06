@@ -25,12 +25,44 @@
                         <div class="col-md-3">
                             <label for="dataType" class="form-label">Veri Türü</label>
                             <select id="dataType" class="form-select">
-                                <option value="yolcuucak">Yolcu/Uçak İstatistikleri</option>
-                                <option value="gunluk">Günlük Zaman Serisi</option>
-                                <option value="inad">İNAD Kayıtları</option>
-                                <option value="tahdit">Tahdit Kayıtları</option>
-                                <option value="haftalik">Haftalık Olay Çizelgesi</option>
-                            </select>
+    <optgroup label="Pasaport">
+        <option value="yolcuucak">Yolcu/Uçak İstatistikleri</option>
+        <option value="gunluk">Günlük Zaman Serisi</option>
+        <option value="inad">İNAD Kayıtları</option>
+        <option value="tahdit">Tahdit Kayıtları</option>
+        <option value="haftalik">Haftalık Olay Çizelgesi</option>
+    </optgroup>
+    <optgroup label="Bilgi Teknolojileri">
+        <option value="bilgitek_KameraKaydiIncelemesi">Kamera Kaydı İncelemesi</option>
+        <option value="bilgitek_PtsAracAraniyor">PTS Araç Aranıyor</option>
+        <option value="bilgitek_PtsAracCalinti">PTS Araç Çalıntı</option>
+        <option value="bilgitek_PtsPlakaCalinti">PTS Plaka Çalıntı</option>
+        <option value="bilgitek_PtsPlakaKayip">PTS Plaka Kayıp</option>
+        <option value="bilgitek_TahditBakilanSorunluYolcu">Tahdit Bakılan Sorunlu Yolcu</option>
+        <option value="bilgitek_YurdaGirisCikisBelgeTalebi">Giriş/Çıkış Belge Talebi</option>
+        <option value="bilgitek_TahditEkleme">Tahdit Ekleme</option>
+        <option value="bilgitek_TahditKaldirma">Tahdit Kaldırma</option>
+    </optgroup>
+    <optgroup label="CCTV">
+        <option value="cctv_IpSabit">IP Sabit Kamera</option>
+        <option value="cctv_IpHareketli">IP Hareketli Kamera</option>
+        <option value="cctv_AnalogSabit">Analog Sabit Kamera</option>
+        <option value="cctv_AnalogHareketli">Analog Hareketli Kamera</option>
+    </optgroup>
+    <optgroup label="Trafik">
+        <option value="trafik_KontrolEdilenAracSayisi">Kontrol Edilen Araç</option>
+        <option value="trafik_CezaYazilanSurucuSayisi">Ceza Yazılan Sürücü</option>
+        <option value="trafik_TrafiktenMenEdilenAracSayisi">Trafikten Men Edilen Araç</option>
+        <option value="trafik_GeciciGeriAlinanSurucuBelgesi">Geri Alınan Sürücü Belgesi</option>
+    </optgroup>
+    <optgroup label="GBT / UYAP">
+        <option value="gbtuyap_SorgulananKisiSayisi">Sorgulanan Kişi</option>
+        <option value="gbtuyap_YakalananKisiSayisi">Yakalanan Kişi</option>
+    </optgroup>
+    <optgroup label="YTS Sorgu">
+        <option value="ytssorgu_GunlukSorguSayisi">Günlük Sorgu Sayısı</option>
+    </optgroup>
+</select>
                         </div>
                         <div class="col-md-2">
                             <label for="startDate" class="form-label">Başlangıç Tarihi</label>

@@ -1,49 +1,49 @@
-ï»¿@{
-    ViewBag.Title = ViewBag.Bureau + " - Veri GiriÅŸi";
+@{
+    ViewBag.Title = ViewBag.Bureau + " - Veri Giriþi";
     string border = ViewBag.Border as string ?? "";
 }
 
 <div class="container-fluid py-4" id="ppApp" style="max-width: 1400px;">
     @Html.AntiForgeryToken()
 
-    <!-- Ãœst BaÅŸlÄ±k & BÃ¼ro Bilgisi -->
+    <!-- Üst Baþlýk & Büro Bilgisi -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center pb-3 mb-4 border-bottom gap-2">
         <div>
             <div class="d-flex align-items-center gap-2">
                 <span class="badge bg-primary bg-opacity-10 text-primary p-2 rounded-3 fs-5">
                     <i class="bi bi-passport"></i>
                 </span>
-                <h3 class="mb-0 fw-bold text-dark">@ViewBag.Bureau Veri GiriÅŸi</h3>
+                <h3 class="mb-0 fw-bold text-dark">@ViewBag.Bureau Veri Giriþi</h3>
             </div>
             @if (!string.IsNullOrEmpty(border))
             {
                 <div class="text-muted small mt-1 d-flex align-items-center gap-1">
                     <i class="bi bi-geo-alt-fill text-danger"></i>
-                    <span>BaÄŸlÄ± SÄ±nÄ±r KapÄ±sÄ± / Åžube: <strong>@border</strong></span>
+                    <span>Baðlý Sýnýr Kapýsý / Þube: <strong>@border</strong></span>
                 </div>
             }
         </div>
         <div>
             <a href="@Url.Action("Index", "Bureau")" class="btn btn-outline-secondary btn-sm px-3 shadow-sm rounded-pill">
-                <i class="bi bi-arrow-left me-1"></i> BÃ¼ro SeÃ§imine DÃ¶n
+                <i class="bi bi-arrow-left me-1"></i> Büro Seçimine Dön
             </a>
         </div>
     </div>
 
-    <!-- Bildirim AlanÄ± -->
+    <!-- Bildirim Alaný -->
     <div id="alertBox"></div>
 
-    <!-- ModÃ¼l Sekmeleri ve Yeni KayÄ±t Butonu -->
+    <!-- Modül Sekmeleri ve Yeni Kayýt Butonu -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
         <ul class="nav nav-pills gap-2 bg-light p-2 rounded-3 border mb-0" id="ppTabs">
     <!-- Tabs will be generated dynamically -->
 </ul>
         <button type="button" class="btn btn-primary px-4 py-2 fw-semibold rounded-pill shadow-sm" id="btnNewRecord" data-bs-toggle="modal" data-bs-target="#recordModal">
-            <i class="bi bi-plus-lg me-1"></i> Yeni KayÄ±t Ekle
+            <i class="bi bi-plus-lg me-1"></i> Yeni Kayýt Ekle
         </button>
     </div>
 
-    <!-- KayÄ±t Modal -->
+    <!-- Kayýt Modal -->
     <div class="modal fade" id="recordModal" tabindex="-1" aria-labelledby="recordModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content border-0 shadow-lg rounded-4">
@@ -52,7 +52,7 @@
                         <span class="badge bg-white text-primary border p-2 rounded-circle fs-6" id="formHeaderIcon">
                             <i class="bi bi-pencil-square"></i>
                         </span>
-                        <h5 class="modal-title fw-bold mb-0 text-dark" id="formTitle">Yeni KayÄ±t</h5>
+                        <h5 class="modal-title fw-bold mb-0 text-dark" id="formTitle">Yeni Kayýt</h5>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
                 </div>
@@ -66,7 +66,7 @@
                     </button>
                     <div class="d-flex gap-2">
                         <button type="button" class="btn btn-light px-4 rounded-pill" data-bs-dismiss="modal" id="cancelEditBtn">
-                            Ä°ptal
+                            Ýptal
                         </button>
                         <button type="button" class="btn btn-success px-4 rounded-pill shadow-sm" id="saveBtn">
                             <i class="bi bi-check-lg me-1"></i> Kaydet
@@ -77,7 +77,7 @@
         </div>
     </div>
 
-    <!-- Arama ve Filtre Ã‡ubuÄŸu -->
+    <!-- Arama ve Filtre Çubuðu -->
     <div class="card border-0 shadow-sm rounded-4 mb-4">
         <div class="card-body p-3">
             <div class="row g-2 align-items-center">
@@ -85,7 +85,7 @@
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-white text-muted"><i class="bi bi-calendar3"></i></span>
                         <select id="filterYear" class="form-select">
-                            <option value="">YÄ±l (TÃ¼mÃ¼)</option>
+                            <option value="">Yýl (Tümü)</option>
                         </select>
                     </div>
                 </div>
@@ -107,7 +107,7 @@
         </div>
     </div>
 
-    <!-- Veri Tablosu KartÄ± -->
+    <!-- Veri Tablosu Kartý -->
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -119,10 +119,10 @@
                 </table>
             </div>
         </div>
-        <!-- Sayfalama (Pagination) AlanÄ± -->
+        <!-- Sayfalama (Pagination) Alaný -->
         <div class="card-footer bg-white border-top py-3 px-3 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
             <span class="small text-muted" id="listInfo"></span>
-            <nav id="paginationContainer" aria-label="Tablo sayfalamasÄ±"></nav>
+            <nav id="paginationContainer" aria-label="Tablo sayfalamasý"></nav>
         </div>
     </div>
 </div>
@@ -160,7 +160,7 @@
         margin-bottom: 0;
     }
 
-    /* Modern Form ElemanlarÄ± (Modal Ä°Ã§i) TasarÄ±m Ã–zelleÅŸtirmeleri */
+    /* Modern Form Elemanlarý (Modal Ýçi) Tasarým Özelleþtirmeleri */
     .form-floating > label {
         color: #6c757d;
         font-size: 0.9rem;
@@ -193,13 +193,39 @@
     <script>
     (function () {
         function $(id) { return document.getElementById(id); }
+        function token() {
+            var el = document.querySelector('input[name="__RequestVerificationToken"]');
+            return el ? el.value : '';
+        }
+        function escapeHtml(v) {
+            return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        }
+        function fmtDate(v) {
+            if (!v) return '-';
+            // ASP.NET /Date(ticks)/ format
+            var m = String(v).match(/\/Date\((-?\d+)/);
+            if (m) {
+                var d = new Date(parseInt(m[1], 10));
+                return d.getFullYear() + '-' +
+                    String(d.getMonth()+1).padStart(2,'0') + '-' +
+                    String(d.getDate()).padStart(2,'0');
+            }
+            // ISO string
+            if (typeof v === 'string') return v.substring(0,10);
+            return String(v);
+        }
+        function showMsg(msg, ok, inModal) {
+            var box = inModal ? $('modalAlertBox') : $('alertBox');
+            if (!box) return;
+            box.innerHTML = '<div class="alert alert-' + (ok ? 'success' : 'danger') + ' alert-dismissible fade show py-2 px-3 small" role="alert">' + msg + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+        }
         var URLS = { list: '/BureauData/Get', save: '/BureauData/Save', del: '/BureauData/Delete' };
 
-        var HAT = { 0: 'Ä°Ã§ Hat', 1: 'DÄ±ÅŸ Hat' };
+        var HAT = { 0: 'Ýç Hat', 1: 'Dýþ Hat' };
         var YON = { 0: 'Gelen', 1: 'Giden' };
 
-        var COUNTRIES = ["ABD", "Afganistan", "Almanya", "Andorra", "Angola", "Antigua ve Barbuda", "Arjantin", "Arnavutluk", "Avustralya", "Avusturya", "Azerbaycan", "Bahamalar", "Bahreyn", "BangladeÅŸ", "Barbados", "BelÃ§ika", "Belize", "Benin", "Beyaz Rusya", "Bhutan", "BirleÅŸik Arap Emirlikleri", "BirleÅŸik KrallÄ±k", "Bolivya", "Bosna Hersek", "Botsvana", "Brezilya", "Brunei", "Bulgaristan", "Burkina Faso", "Burundi", "Cezayir", "Cibuti", "Ã‡ad", "Ã‡ekya", "Ã‡in", "Danimarka", "Dominik Cumhuriyeti", "Dominika", "Ekvador", "Ekvator Ginesi", "El Salvador", "Endonezya", "Eritre", "Ermenistan", "Estonya", "Esvatini", "Etiyopya", "Fas", "Fiji", "FildiÅŸi Sahili", "Filipinler", "Filistin", "Finlandiya", "Fransa", "Gabon", "Gambiya", "Gana", "Gine", "Gine-Bissau", "Grenada", "Guatemala", "Guyana", "GÃ¼ney Afrika", "GÃ¼ney Kore", "GÃ¼ney Sudan", "GÃ¼rcistan", "Haiti", "HÄ±rvatistan", "Hindistan", "Hollanda", "Honduras", "Irak", "Ä°ran", "Ä°rlanda", "Ä°spanya", "Ä°srail", "Ä°sveÃ§", "Ä°sviÃ§re", "Ä°talya", "Ä°zlanda", "Jamaika", "Japonya", "KamboÃ§ya", "Kamerun", "Kanada", "KaradaÄŸ", "Katar", "Kazakistan", "Kenya", "KÄ±brÄ±s", "KÄ±rgÄ±zistan", "Kiribati", "Kolombiya", "Komorlar", "Kongo", "Kosta Rika", "Kuveyt", "Kuzey Kore", "Kuzey Makedonya", "KÃ¼ba", "Laos", "Lesotho", "Letonya", "Liberya", "Libya", "Liechtenstein", "Litvanya", "LÃ¼bnan", "LÃ¼ksemburg", "Macaristan", "Madagaskar", "Malavi", "Maldivler", "Malezya", "Mali", "Malta", "Marshall AdalarÄ±", "Mauritius", "Meksika", "MÄ±sÄ±r", "Mikronezya", "MoÄŸolistan", "Moldova", "Monako", "Moritanya", "Mozambik", "Myanmar", "Namibya", "Nauru", "Nepal", "Nikaragua", "Nijer", "Nijerya", "NorveÃ§", "Orta Afrika Cumhuriyeti", "Ã–zbekistan", "Pakistan", "Palau", "Panama", "Papua Yeni Gine", "Paraguay", "Peru", "Polonya", "Portekiz", "Romanya", "Ruanda", "Rusya", "Saint Kitts ve Nevis", "Saint Lucia", "Saint Vincent ve Grenadinler", "Samoa", "San Marino", "Sao Tome ve Principe", "Senegal", "SeyÅŸeller", "SÄ±rbistan", "Sierra Leone", "Singapur", "Slovakya", "Slovenya", "Solomon AdalarÄ±", "Somali", "Sri Lanka", "Sudan", "Surinam", "Suriye", "Suudi Arabistan", "Åžili", "Tacikistan", "Tanzanya", "Tayland", "Togo", "Tonga", "Trinidad ve Tobago", "Tunus", "Tuvalu", "TÃ¼rkiye", "TÃ¼rkmenistan", "Uganda", "Ukrayna", "Umman", "Uruguay", "ÃœrdÃ¼n", "Vanuatu", "Vatikan", "Venezuela", "Vietnam", "Yemen", "Yeni Zelanda", "YeÅŸil Burun AdalarÄ±", "Yunanistan", "Zambiya", "Zimbabve"];
-        var INAD_REASONS = ["Vize Ä°hlali", "GeÃ§erli Seyahat Belgesi OlmamasÄ±", "Sahte Belge KullanÄ±mÄ±", "Kamu DÃ¼zeni/GÃ¼venliÄŸi Tehdidi", "Yeterli Maddi Kaynak GÃ¶sterememe", "GeliÅŸ AmacÄ±nÄ± Ä°zah Edememe", "GiriÅŸ YasaÄŸÄ± BulunmasÄ±", "DiÄŸer Sebepler"];
+        var COUNTRIES = ["ABD", "Afganistan", "Almanya", "Andorra", "Angola", "Antigua ve Barbuda", "Arjantin", "Arnavutluk", "Avustralya", "Avusturya", "Azerbaycan", "Bahamalar", "Bahreyn", "Bangladeþ", "Barbados", "Belçika", "Belize", "Benin", "Beyaz Rusya", "Bhutan", "Birleþik Arap Emirlikleri", "Birleþik Krallýk", "Bolivya", "Bosna Hersek", "Botsvana", "Brezilya", "Brunei", "Bulgaristan", "Burkina Faso", "Burundi", "Cezayir", "Cibuti", "Çad", "Çekya", "Çin", "Danimarka", "Dominik Cumhuriyeti", "Dominika", "Ekvador", "Ekvator Ginesi", "El Salvador", "Endonezya", "Eritre", "Ermenistan", "Estonya", "Esvatini", "Etiyopya", "Fas", "Fiji", "Fildiþi Sahili", "Filipinler", "Filistin", "Finlandiya", "Fransa", "Gabon", "Gambiya", "Gana", "Gine", "Gine-Bissau", "Grenada", "Guatemala", "Guyana", "Güney Afrika", "Güney Kore", "Güney Sudan", "Gürcistan", "Haiti", "Hýrvatistan", "Hindistan", "Hollanda", "Honduras", "Irak", "Ýran", "Ýrlanda", "Ýspanya", "Ýsrail", "Ýsveç", "Ýsviçre", "Ýtalya", "Ýzlanda", "Jamaika", "Japonya", "Kamboçya", "Kamerun", "Kanada", "Karadað", "Katar", "Kazakistan", "Kenya", "Kýbrýs", "Kýrgýzistan", "Kiribati", "Kolombiya", "Komorlar", "Kongo", "Kosta Rika", "Kuveyt", "Kuzey Kore", "Kuzey Makedonya", "Küba", "Laos", "Lesotho", "Letonya", "Liberya", "Libya", "Liechtenstein", "Litvanya", "Lübnan", "Lüksemburg", "Macaristan", "Madagaskar", "Malavi", "Maldivler", "Malezya", "Mali", "Malta", "Marshall Adalarý", "Mauritius", "Meksika", "Mýsýr", "Mikronezya", "Moðolistan", "Moldova", "Monako", "Moritanya", "Mozambik", "Myanmar", "Namibya", "Nauru", "Nepal", "Nikaragua", "Nijer", "Nijerya", "Norveç", "Orta Afrika Cumhuriyeti", "Özbekistan", "Pakistan", "Palau", "Panama", "Papua Yeni Gine", "Paraguay", "Peru", "Polonya", "Portekiz", "Romanya", "Ruanda", "Rusya", "Saint Kitts ve Nevis", "Saint Lucia", "Saint Vincent ve Grenadinler", "Samoa", "San Marino", "Sao Tome ve Principe", "Senegal", "Seyþeller", "Sýrbistan", "Sierra Leone", "Singapur", "Slovakya", "Slovenya", "Solomon Adalarý", "Somali", "Sri Lanka", "Sudan", "Surinam", "Suriye", "Suudi Arabistan", "Þili", "Tacikistan", "Tanzanya", "Tayland", "Togo", "Tonga", "Trinidad ve Tobago", "Tunus", "Tuvalu", "Türkiye", "Türkmenistan", "Uganda", "Ukrayna", "Umman", "Uruguay", "Ürdün", "Vanuatu", "Vatikan", "Venezuela", "Vietnam", "Yemen", "Yeni Zelanda", "Yeþil Burun Adalarý", "Yunanistan", "Zambiya", "Zimbabve"];
+        var INAD_REASONS = ["Vize Ýhlali", "Geçerli Seyahat Belgesi Olmamasý", "Sahte Belge Kullanýmý", "Kamu Düzeni/Güvenliði Tehdidi", "Yeterli Maddi Kaynak Gösterememe", "Geliþ Amacýný Ýzah Edememe", "Giriþ Yasaðý Bulunmasý", "Diðer Sebepler"];
 
 
         
@@ -214,35 +240,35 @@
         if (BUREAU === 'IDARI') {
             TYPES = {
                 idari: {
-                    title: 'Ä°dari BÃ¼ro', search: false, year: true, icon: 'bi-file-earmark-text',
+                    title: 'Ýdari Büro', search: false, year: true, icon: 'bi-file-earmark-text',
                     fields: [
-                        { n: 'Tarih', l: 'Ä°ÅŸlem Tarihi', t: 'date', req: true, w: 4, section: 'Evrak ve Personel' },
+                        { n: 'Tarih', l: 'Ýþlem Tarihi', t: 'date', req: true, w: 4, section: 'Evrak ve Personel' },
                         { n: 'GelenEvrak', l: 'Gelen Evrak', t: 'int', w: 4 },
                         { n: 'GidenEvrak', l: 'Giden Evrak', t: 'int', w: 4 },
                         { n: 'ToplamPersonelSayisi', l: 'Toplam Personel', t: 'int', w: 4 },
-                        { n: 'IdariBuroPersonelSayisi', l: 'Ä°dari BÃ¼ro Personeli', t: 'int', w: 4 }
+                        { n: 'IdariBuroPersonelSayisi', l: 'Ýdari Büro Personeli', t: 'int', w: 4 }
                     ],
                     cols: [
-                        ['Tarih', 'Tarih', function(v) { return v ? v.substring(0,10) : '-'; }],
+                        ['Tarih', 'Tarih', fmtDate],
                         ['Gelen Evrak', 'GelenEvrak'],
                         ['Giden Evrak', 'GidenEvrak'],
                         ['Toplam Per.', 'ToplamPersonelSayisi'],
-                        ['Ä°dari Per.', 'IdariBuroPersonelSayisi']
+                        ['Ýdari Per.', 'IdariBuroPersonelSayisi']
                     ]
                 }
             };
         } else if (BUREAU === 'GUVENLIK') {
             TYPES = {
                 guvenlik: {
-                    title: 'GÃ¼venlik Hizmetleri (Ana Nizamiye)', search: false, year: true, icon: 'bi-shield-lock',
+                    title: 'Güvenlik Hizmetleri (Ana Nizamiye)', search: false, year: true, icon: 'bi-shield-lock',
                     fields: [
-                        { n: 'Tarih', l: 'Ä°ÅŸlem Tarihi', t: 'date', req: true, w: 4, section: 'AraÃ§ Ä°statistikleri' },
-                        { n: 'GirisYapanArac', l: 'GiriÅŸ Yapan AraÃ§', t: 'int', w: 4 },
-                        { n: 'KontrolEdilenArac', l: 'Kontrol Edilen AraÃ§', t: 'int', w: 4 }
+                        { n: 'Tarih', l: 'Ýþlem Tarihi', t: 'date', req: true, w: 4, section: 'Araç Ýstatistikleri' },
+                        { n: 'GirisYapanArac', l: 'Giriþ Yapan Araç', t: 'int', w: 4 },
+                        { n: 'KontrolEdilenArac', l: 'Kontrol Edilen Araç', t: 'int', w: 4 }
                     ],
                     cols: [
-                        ['Tarih', 'Tarih', function(v) { return v ? v.substring(0,10) : '-'; }],
-                        ['GiriÅŸ Yapan', 'GirisYapanArac'],
+                        ['Tarih', 'Tarih', fmtDate],
+                        ['Giriþ Yapan', 'GirisYapanArac'],
                         ['Kontrol Edilen', 'KontrolEdilenArac']
                     ]
                 }
@@ -250,49 +276,49 @@
         } else if (BUREAU === 'BILGI_TEK') {
             TYPES = {
                 bilgitek: {
-                    title: 'BiliÅŸim ve Teknoloji (GÃ¼nlÃ¼k)', search: false, year: true, icon: 'bi-pc-display',
+                    title: 'Biliþim ve Teknoloji (Günlük)', search: false, year: true, icon: 'bi-pc-display',
                     fields: [
-                        { n: 'Tarih', l: 'Ä°ÅŸlem Tarihi', t: 'date', req: true, w: 4, section: 'GÃ¼nlÃ¼k Ä°statistikler' },
-                        { n: 'KameraKaydiIncelemesi', l: 'Kamera KaydÄ± Ä°ncelemesi', t: 'int', w: 4 },
-                        { n: 'TahditBakilanSorunluYolcu', l: 'Tahdit BakÄ±lan Sorunlu Yolcu', t: 'int', w: 4 },
-                        { n: 'YurdaGirisCikisBelgeTalebi', l: 'GiriÅŸ Ã‡Ä±kÄ±ÅŸ Belge Talebi', t: 'int', w: 4 },
+                        { n: 'Tarih', l: 'Ýþlem Tarihi', t: 'date', req: true, w: 4, section: 'Günlük Ýstatistikler' },
+                        { n: 'KameraKaydiIncelemesi', l: 'Kamera Kaydý Ýncelemesi', t: 'int', w: 4 },
+                        { n: 'TahditBakilanSorunluYolcu', l: 'Tahdit Bakýlan Sorunlu Yolcu', t: 'int', w: 4 },
+                        { n: 'YurdaGirisCikisBelgeTalebi', l: 'Giriþ Çýkýþ Belge Talebi', t: 'int', w: 4 },
                           { n: 'TahditEkleme', l: 'Tahdit Ekleme', t: 'int', w: 4 },
-                          { n: 'TahditKaldirma', l: 'Tahdit KaldÄ±rma', t: 'int', w: 4 },
-                        { n: 'PtsAracAraniyor', l: 'PTS: AraÃ§ AranÄ±yor', t: 'int', w: 4, section: 'PTS Verileri' },
-                        { n: 'PtsAracCalinti', l: 'PTS: AraÃ§ Ã‡alÄ±ntÄ±', t: 'int', w: 4 },
-                        { n: 'PtsPlakaCalinti', l: 'PTS: Plaka Ã‡alÄ±ntÄ±', t: 'int', w: 4 },
-                        { n: 'PtsPlakaKayip', l: 'PTS: Plaka KayÄ±p', t: 'int', w: 4 }
+                          { n: 'TahditKaldirma', l: 'Tahdit Kaldýrma', t: 'int', w: 4 },
+                        { n: 'PtsAracAraniyor', l: 'PTS: Araç Aranýyor', t: 'int', w: 4, section: 'PTS Verileri' },
+                        { n: 'PtsAracCalinti', l: 'PTS: Araç Çalýntý', t: 'int', w: 4 },
+                        { n: 'PtsPlakaCalinti', l: 'PTS: Plaka Çalýntý', t: 'int', w: 4 },
+                        { n: 'PtsPlakaKayip', l: 'PTS: Plaka Kayýp', t: 'int', w: 4 }
                     ],
                     cols: [
-                        ['Tarih', 'Tarih', function(v) { return v ? v.substring(0,10) : '-'; }],
+                        ['Tarih', 'Tarih', fmtDate],
                         ['Kamera', 'KameraKaydiIncelemesi'],
                         ['Tahdit/Yolcu', 'TahditBakilanSorunluYolcu'],
-                        ['GiriÅŸ/Ã‡Ä±kÄ±ÅŸ Belge', 'YurdaGirisCikisBelgeTalebi'],
+                        ['Giriþ/Çýkýþ Belge', 'YurdaGirisCikisBelgeTalebi'],
                           ['Tahdit Ekleme', 'TahditEkleme'],
-                          ['Tahdit KaldÄ±rma', 'TahditKaldirma'],
-                        ['AraÃ§ Aranan', 'PtsAracAraniyor']
+                          ['Tahdit Kaldýrma', 'TahditKaldirma'],
+                        ['Araç Aranan', 'PtsAracAraniyor']
                     ]
                 },
                 cctv: {
-                    title: 'CCTV Kamera Ä°statistiÄŸi', search: false, year: true, icon: 'bi-camera-video',
+                    title: 'CCTV Kamera Ýstatistiði', search: false, year: true, icon: 'bi-camera-video',
                     fields: [
-                        { n: 'Tarih', l: 'Ä°ÅŸlem Tarihi', t: 'date', req: true, w: 4, section: 'Kamera SayÄ±larÄ±' },
-                        { n: 'Bolge', l: 'BÃ¶lge', t: 'select_str', opts: ['Terminal DÄ±ÅŸÄ±', 'Terminal Ä°Ã§i', 'Pist-Apron', 'Apron'], req: true, w: 4 },
-                        { n: 'IpSabit', l: 'IP Sabit Kamera', t: 'int', w: 3, section: 'Kamera TÃ¼rleri' },
+                        { n: 'Tarih', l: 'Ýþlem Tarihi', t: 'date', req: true, w: 4, section: 'Kamera Sayýlarý' },
+                        { n: 'Bolge', l: 'Bölge', t: 'select_str', opts: ['Terminal Dýþý', 'Terminal Ýçi', 'Pist-Apron', 'Apron'], req: true, w: 4 },
+                        { n: 'IpSabit', l: 'IP Sabit Kamera', t: 'int', w: 3, section: 'Kamera Türleri' },
                         { n: 'IpHareketli', l: 'IP Hareketli Kamera', t: 'int', w: 3 },
                         { n: 'AnalogSabit', l: 'Analog Sabit Kamera', t: 'int', w: 3 },
                         { n: 'AnalogHareketli', l: 'Analog Hareketli', t: 'int', w: 3 }
                     ],
                     cols: [
-                        ['Tarih', 'Tarih', function(v) { return v ? v.substring(0,10) : '-'; }],
-                        ['BÃ¶lge', 'Bolge'],
+                        ['Tarih', 'Tarih', fmtDate],
+                        ['Bölge', 'Bolge'],
                         ['IP Sabit', 'IpSabit'],
                         ['IP Hareketli', 'IpHareketli'],
                         ['Analog Sabit', 'AnalogSabit'],
                         ['Analog Hareketli', 'AnalogHareketli']
                     ]
                 }
-            }, 6000);
+            };
         }
 
         function post(url, params) {
@@ -316,19 +342,19 @@
                 return response.text().then(function (text) {
                     var data = null;
                     try { data = text ? JSON.parse(text) : null; }
-                    catch (e) { throw new Error('Sunucudan geÃ§ersiz bir yanÄ±t alÄ±ndÄ±.'); }
-                    if (!response.ok) throw new Error((data && data.message) || 'Sunucu isteÄŸi iÅŸleyemedi. (HTTP ' + response.status + ')');
-                    return data || { success: false, message: 'Sunucudan boÅŸ yanÄ±t alÄ±ndÄ±.' };
+                    catch (e) { throw new Error('Sunucudan geçersiz bir yanýt alýndý.'); }
+                    if (!response.ok) throw new Error((data && data.message) || 'Sunucu isteði iþleyemedi. (HTTP ' + response.status + ')');
+                    return data || { success: false, message: 'Sunucudan boþ yanýt alýndý.' };
                 });
             });
         }
 
-        // --- MODERNÄ°ZE EDÄ°LMÄ°Åž FORM OLUÅžTURUCU (Bootstrap Floating Labels & Sections) ---
+        // --- MODERNÝZE EDÝLMÝÞ FORM OLUÞTURUCU (Bootstrap Floating Labels & Sections) ---
         function buildForm() {
             var cfg = TYPES[current];
-            $('formTitle').textContent = (editingId ? 'KaydÄ± DÃ¼zenle: ' : 'Yeni KayÄ±t: ') + cfg.title;
+            $('formTitle').textContent = (editingId ? 'Kaydý Düzenle: ' : 'Yeni Kayýt: ') + cfg.title;
             $('formHeaderIcon').innerHTML = '<i class="bi ' + (cfg.icon || 'bi-pencil-square') + '"></i>';
-            $('saveBtn').innerHTML = editingId ? '<i class="bi bi-save me-1"></i> GÃ¼ncelle' : '<i class="bi bi-check-lg me-1"></i> Kaydet';
+            $('saveBtn').innerHTML = editingId ? '<i class="bi bi-save me-1"></i> Güncelle' : '<i class="bi bi-check-lg me-1"></i> Kaydet';
             $('cancelEditBtn').style.display = editingId ? 'inline-block' : 'none';
 
             var wrap = $('formFields');
@@ -336,20 +362,20 @@
 
             cfg.fields.forEach(function (f, idx) {
 
-                // EÄŸer alana ait bir bÃ¶lÃ¼m baÅŸlÄ±ÄŸÄ± (section) tanÄ±mlanmÄ±ÅŸsa ayÄ±rÄ±cÄ±yÄ± Ã§iz
+                // Eðer alana ait bir bölüm baþlýðý (section) tanýmlanmýþsa ayýrýcýyý çiz
                 if (f.section) {
                     var secCol = document.createElement('div');
-                    // Ä°lk elemansa Ã¼st boÅŸluk bÄ±rakma, deÄŸilse boÅŸluk bÄ±rak
+                    // Ýlk elemansa üst boþluk býrakma, deðilse boþluk býrak
                     secCol.className = idx === 0 ? 'col-12 mb-0' : 'col-12 mt-4 mb-0';
                     secCol.innerHTML = '<h6 class="text-secondary fw-semibold border-bottom pb-2 mb-0">' + f.section + '</h6>';
                     wrap.appendChild(secCol);
                 }
 
-                // SÃ¼tun yapÄ±sÄ±
+                // Sütun yapýsý
                 var col = document.createElement('div');
                 col.className = 'col-12 col-md-' + (f.w || 12);
 
-                // Floating Label SarmalayÄ±cÄ±
+                // Floating Label Sarmalayýcý
                 var floatWrap = document.createElement('div');
                 floatWrap.className = 'form-floating';
 
@@ -359,7 +385,7 @@
                     el.className = 'form-select';
                     var optEmpty = document.createElement('option');
                     optEmpty.value = '';
-                    optEmpty.textContent = 'SeÃ§iniz...';
+                    optEmpty.textContent = 'Seçiniz...';
                     el.appendChild(optEmpty);
                     if (Array.isArray(f.opts)) {
                         f.opts.forEach(function (val) {
@@ -394,7 +420,7 @@
                 if (f.max) el.maxLength = f.max;
                 el.id = 'f_' + f.n;
 
-                // Etiket TanÄ±mÄ±
+                // Etiket Tanýmý
                 var lb = document.createElement('label');
                 lb.htmlFor = el.id;
                 lb.innerHTML = f.l + (f.req ? ' <span class="text-danger">*</span>' : '');
@@ -422,7 +448,7 @@
                 var v = row[f.n];
                 if (v != null) {
                     if (f.t === 'date' && typeof v === 'string') {
-                        el.value = v.split('T')[0];
+                        el.value = fmtDate(v);
                     } else {
                         el.value = v;
                     }
@@ -500,11 +526,11 @@
                             var box = $('modalAlertBox');
                             if (box) box.innerHTML = '';
                         } else {
-                            showMsg('KayÄ±t bulunamadÄ±.', false, true);
+                            showMsg('Kayýt bulunamadý.', false, true);
                         }
                     })
                     .catch(function() {
-                        showMsg('KayÄ±t getirilirken hata oluÅŸtu.', false, true);
+                        showMsg('Kayýt getirilirken hata oluþtu.', false, true);
                     });
             }
         };
@@ -512,7 +538,7 @@
         function save() {
             var cfg = TYPES[current];
 
-            // Daha Ã¶nceki hata gÃ¶rselliklerini temizle
+            // Daha önceki hata görselliklerini temizle
             document.querySelectorAll('.is-invalid').forEach(function (el) {
                 el.classList.remove('is-invalid');
             });
@@ -523,7 +549,7 @@
                 var value = el ? String(el.value || '').trim() : '';
 
                 if (f.req && value === '') {
-                    showMsg(f.l + ' alanÄ± zorunludur.', false, true);
+                    showMsg(f.l + ' alaný zorunludur.', false, true);
                     if (el) {
                         el.classList.add('is-invalid');
                         el.focus();
@@ -533,7 +559,7 @@
                 if (f.t === 'int' && value !== '') {
                     var intValue = Number(value);
                     if (!Number.isInteger(intValue) || intValue < 0) {
-                        showMsg(f.l + ' alanÄ±na 0 veya daha bÃ¼yÃ¼k bir tam sayÄ± giriniz.', false, true);
+                        showMsg(f.l + ' alanýna 0 veya daha büyük bir tam sayý giriniz.', false, true);
                         if (el) {
                             el.classList.add('is-invalid');
                             el.focus();
@@ -557,14 +583,14 @@
                 .then(function (r) {
                     if (!r || r.success !== true) {
                         if (r && r.duplicateId) {
-                            var errMsg = (r.message || 'KayÄ±t zaten var.') + ' <button type="button" class="btn btn-sm btn-warning ms-3" onclick="editDuplicate(' + r.duplicateId + ')">Mevcut KaydÄ± DÃ¼zenle</button>';
+                            var errMsg = (r.message || 'Kayýt zaten var.') + ' <button type="button" class="btn btn-sm btn-warning ms-3" onclick="editDuplicate(' + r.duplicateId + ')">Mevcut Kaydý Düzenle</button>';
                             showMsg(errMsg, false, true);
                         } else {
-                            throw new Error((r && r.message) || 'KayÄ±t iÅŸlemi gerÃ§ekleÅŸtirilemedi.');
+                            throw new Error((r && r.message) || 'Kayýt iþlemi gerçekleþtirilemedi.');
                         }
                         return;
                     }
-                    showMsg(editingId ? 'KayÄ±t gÃ¼ncellendi.' : 'KayÄ±t baÅŸarÄ±yla oluÅŸturuldu.', true, true);
+                    showMsg(editingId ? 'Kayýt güncellendi.' : 'Kayýt baþarýyla oluþturuldu.', true, true);
                     resetForm();
                     var modalElement = document.getElementById('recordModal');
                     var modal = bootstrap.Modal.getInstance(modalElement);
@@ -572,7 +598,7 @@
                     load();
                 })
                 .catch(function (err) {
-                    showMsg(err && err.message ? err.message : 'KayÄ±t sÄ±rasÄ±nda sunucu hatasÄ± oluÅŸtu.', false, true);
+                    showMsg(err && err.message ? err.message : 'Kayýt sýrasýnda sunucu hatasý oluþtu.', false, true);
                 })
                 .then(function () {
                     btn.disabled = false;
@@ -581,16 +607,16 @@
         }
 
         function remove(row) {
-            if (!confirm('Bu kaydÄ± silmek istediÄŸinize emin misiniz?')) return;
+            if (!confirm('Bu kaydý silmek istediðinize emin misiniz?')) return;
             post(URLS.del + '?bureau=' + encodeURIComponent(BUREAU), { type: current, id: row.Id })
                 .then(function (r) {
-                    showMsg(r.success ? 'KayÄ±t baÅŸarÄ±yla silindi.' : r.message, r.success);
+                    showMsg(r.success ? 'Kayýt baþarýyla silindi.' : r.message, r.success);
                     if (r.success) {
                         if (editingId === row.Id) resetForm();
                         load();
                     }
                 })
-                .catch(function () { showMsg('Silme iÅŸlemi sÄ±rasÄ±nda sunucu hatasÄ± oluÅŸtu.', false); });
+                .catch(function () { showMsg('Silme iþlemi sýrasýnda sunucu hatasý oluþtu.', false); });
         }
 
         function renderPagination(totalRows) {
@@ -633,7 +659,7 @@
             });
             var thAct = document.createElement('th');
             thAct.className = 'text-end px-3';
-            thAct.textContent = 'Ä°ÅŸlemler';
+            thAct.textContent = 'Ýþlemler';
             head.appendChild(thAct);
 
             var body = $('listBody');
@@ -643,7 +669,7 @@
                 var td0 = document.createElement('td');
                 td0.colSpan = cfg.cols.length + 1;
                 td0.className = 'text-center py-5 text-muted';
-                td0.innerHTML = '<i class="bi bi-inbox fs-2 d-block mb-2 text-secondary"></i>KayÄ±t bulunamadÄ±.';
+                td0.innerHTML = '<i class="bi bi-inbox fs-2 d-block mb-2 text-secondary"></i>Kayýt bulunamadý.';
                 tr0.appendChild(td0);
                 body.appendChild(tr0);
 
@@ -674,7 +700,7 @@
                     btnEdit.setAttribute('data-bs-target', '#recordModal');
                     btnEdit.className = 'btn btn-sm btn-outline-primary me-1 rounded-pill px-2';
                     btnEdit.innerHTML = '<i class="bi bi-pencil"></i>';
-                    btnEdit.title = 'DÃ¼zenle';
+                    btnEdit.title = 'Düzenle';
                     btnEdit.onclick = function () { fillForm(row); };
 
                     var btnDel = document.createElement('button');
@@ -690,27 +716,26 @@
                 });
 
                 var endRow = Math.min(startIndex + pageSize, rows.length);
-                $('listInfo').innerHTML = '<i class="bi bi-info-circle me-1"></i> Toplam <strong>' + rows.length + '</strong> kayÄ±ttan <strong>' + (startIndex + 1) + '-' + endRow + '</strong> arasÄ± gÃ¶steriliyor.';
+                $('listInfo').innerHTML = '<i class="bi bi-info-circle me-1"></i> Toplam <strong>' + rows.length + '</strong> kayýttan <strong>' + (startIndex + 1) + '-' + endRow + '</strong> arasý gösteriliyor.';
                 renderPagination(rows.length);
             }
         }
 
         function load() {
             var cfg = TYPES[current];
-            var qs = 'bureau=' + encodeURIComponent(BUREAU) + '&type=' + encodeURIComponent(current);
             var y = $('filterYear').value;
-            if (cfg.year && y) qs += '&year=' + encodeURIComponent(y);
+            var qs = 'bureau=' + encodeURIComponent(BUREAU) + '&type=' + encodeURIComponent(current) + '&year=' + (y ? encodeURIComponent(y) : '0');
             var s = $('filterSearch').value;
             if (cfg.search && s) qs += '&search=' + encodeURIComponent(s);
 
             var body = $('listBody');
-            body.innerHTML = '<tr><td colspan="' + (cfg.cols.length + 1) + '" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2 text-primary" role="status"></div>YÃ¼kleniyor...</td></tr>';
+            body.innerHTML = '<tr><td colspan="' + (cfg.cols.length + 1) + '" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2 text-primary" role="status"></div>Yükleniyor...</td></tr>';
 
-            fetch(URLS.list + '?' + qs, { credentials: 'same-origin' })
+            fetch(URLS.list + '?' + qs + '&_t=' + new Date().getTime(), { credentials: 'same-origin', cache: 'no-store' })
                 .then(function (r) { return r.json(); })
                 .then(function (r) {
                     if (!r.success) {
-                        showMsg(r.message || 'Veriler alÄ±namadÄ±.', false);
+                        showMsg(r.message || 'Veriler alýnamadý.', false);
                         rows = [];
                     } else {
                         rows = r.data || [];
@@ -719,7 +744,7 @@
                     render();
                 })
                 .catch(function () {
-                    showMsg('Veriler yÃ¼klenirken sunucuya ulaÅŸÄ±lamadÄ±.', false);
+                    showMsg('Veriler yüklenirken sunucuya ulaþýlamadý.', false);
                     rows = [];
                     render();
                 });

@@ -1,4 +1,4 @@
-﻿using Istatistik.Filters;
+using Istatistik.Filters;
 using Istatistik.Models;
 using Istatistik.Services;
 using System;
@@ -123,6 +123,68 @@ namespace Istatistik.Controllers
         public ActionResult SetBureauActive(int bureauId, bool isActive)
         {
             return Run(s => { s.SetBureauActive(bureauId, isActive); return new { bureauId, isActive }; });
+        }
+
+        // -------------------------
+        // DUMMY DATA SEEDER
+        // -------------------------
+        [AllowAnonymous]
+        public ActionResult Seed50()
+        {
+            var border = "ANTALYA GAZİPAŞA HAVA LİMANI";
+            var rnd = new Random();
+            var now = DateTime.Now;
+
+            // Generate 50 dates over the last 2 years
+            for (int i = 0; i < 50; i++)
+            {
+                var d = now.AddDays(-rnd.Next(1, 700));
+
+                _db.BilgiTeknolojileriIstatistikleri.Add(new BilgiTeknolojileriIstatistik
+                {
+                    Border = border, Tarih = d,
+                    KameraKaydiIncelemesi = rnd.Next(0, 10),
+                    PtsAracAraniyor = rnd.Next(0, 5),
+                    PtsAracCalinti = rnd.Next(0, 2),
+                    PtsPlakaCalinti = rnd.Next(0, 2),
+                    PtsPlakaKayip = rnd.Next(0, 2),
+                    TahditBakilanSorunluYolcu = rnd.Next(50, 200),
+                    YurdaGirisCikisBelgeTalebi = rnd.Next(0, 10),
+                    TahditEkleme = rnd.Next(1, 10),
+                    TahditKaldirma = rnd.Next(1, 10)
+                });
+
+                _db.CctvIstatistikleri.Add(new CctvIstatistik
+                {
+                    Border = border, Tarih = d, Bolge = "Terminal İçi",
+                    IpSabit = rnd.Next(10, 50), IpHareketli = rnd.Next(5, 20),
+                    AnalogSabit = rnd.Next(0, 10), AnalogHareketli = rnd.Next(0, 5)
+                });
+
+                _db.TrafikIstatistikleri.Add(new TrafikIstatistik
+                {
+                    Border = border, Tarih = d,
+                    KontrolEdilenAracSayisi = rnd.Next(20, 100),
+                    CezaYazilanSurucuSayisi = rnd.Next(0, 20),
+                    TrafiktenMenEdilenAracSayisi = rnd.Next(0, 5),
+                    GeciciGeriAlinanSurucuBelgesi = rnd.Next(0, 3)
+                });
+
+                _db.GbtUyapSorgulari.Add(new GbtUyapSorgu
+                {
+                    Border = border, Tarih = d,
+                    SorgulananKisiSayisi = rnd.Next(100, 1000),
+                    YakalananKisiSayisi = rnd.Next(0, 5)
+                });
+
+                _db.YtsSorgulari.Add(new YtsSorgu
+                {
+                    Border = border, Tarih = d, GunlukSorguSayisi = rnd.Next(50, 300)
+                });
+            }
+
+            _db.SaveChanges();
+            return Content("Başarıyla 50'şer adet rastgele veri eklendi!");
         }
 
         protected override void Dispose(bool disposing)

@@ -36,7 +36,38 @@ namespace Istatistik.Services
 
         private void ValidateDataTypeAccess(string dataType)
         {
-            // Şu an tüm veri türleri Pasaport bürosuna ait
+            if (_user.IsSuperAdmin || _user.IsUnitAdmin) return;
+
+            var dt = (dataType ?? "").ToLowerInvariant();
+            if (dt.StartsWith("bilgitek_"))
+            {
+                if (!_user.CanAccessBureau(BureauCodes.BilgiTeknolojileri))
+                    throw new UnauthorizedAccessException("Bilgi Teknolojileri bürosu verileri için yetkiniz yok.");
+                return;
+            }
+            if (dt.StartsWith("cctv_"))
+            {
+                return;
+            }
+            if (dt.StartsWith("trafik_"))
+            {
+                if (!_user.CanAccessBureau(BureauCodes.Trafik))
+                    throw new UnauthorizedAccessException("Trafik bürosu verileri için yetkiniz yok.");
+                return;
+            }
+            if (dt.StartsWith("gbtuyap_"))
+            {
+                if (!_user.CanAccessBureau(BureauCodes.GbtUyap))
+                    throw new UnauthorizedAccessException("GBT / UYAP verileri için yetkiniz yok.");
+                return;
+            }
+            if (dt.StartsWith("ytssorgu_"))
+            {
+                if (!_user.CanAccessBureau(BureauCodes.YtsSorgu))
+                    throw new UnauthorizedAccessException("YTS Sorgu verileri için yetkiniz yok.");
+                return;
+            }
+
             if (!_user.CanAccessBureau(BureauCodes.Pasaport))
                 throw new UnauthorizedAccessException("Pasaport bürosu verileri için yetkiniz yok.");
         }
@@ -74,25 +105,33 @@ namespace Istatistik.Services
                 EndDate = endDate
             };
 
-            switch (dataType.ToLowerInvariant())
+            var dt = (dataType ?? "").ToLowerInvariant();
+            if (dt.Contains("_"))
             {
-                case "yolcuucak":
-                    result.DataPoints = AggregateYolcuUcak(startDate, endDate, periodType);
-                    break;
-                case "gunluk":
-                    result.DataPoints = AggregateGunluk(startDate, endDate, periodType);
-                    break;
-                case "inad":
-                    result.DataPoints = AggregateInad(startDate, endDate, periodType);
-                    break;
-                case "tahdit":
-                    result.DataPoints = AggregateTahdit(startDate, endDate, periodType);
-                    break;
-                case "haftalik":
-                    result.DataPoints = AggregateHaftalik(startDate, endDate, periodType);
-                    break;
-                default:
-                    throw new ArgumentException("Geçersiz veri tipi: " + dataType);
+                result.DataPoints = AggregateDynamic(startDate, endDate, periodType, dataType);
+            }
+            else
+            {
+                switch (dt)
+                {
+                    case "yolcuucak":
+                        result.DataPoints = AggregateYolcuUcak(startDate, endDate, periodType);
+                        break;
+                    case "gunluk":
+                        result.DataPoints = AggregateGunluk(startDate, endDate, periodType);
+                        break;
+                    case "inad":
+                        result.DataPoints = AggregateInad(startDate, endDate, periodType);
+                        break;
+                    case "tahdit":
+                        result.DataPoints = AggregateTahdit(startDate, endDate, periodType);
+                        break;
+                    case "haftalik":
+                        result.DataPoints = AggregateHaftalik(startDate, endDate, periodType);
+                        break;
+                    default:
+                        throw new ArgumentException("Geçersiz veri tipi: " + dataType);
+                }
             }
 
             // Özet hesapla
@@ -176,6 +215,125 @@ namespace Istatistik.Services
                 .ToList()
                 .Select(x => new RawDataPoint { Tarih = x.Tarih, Value = x.GunlukYolcuSayisi })
                 .ToList();
+
+            return AggregateByPeriod(raw, periodType);
+        }
+
+        #endregion
+
+        
+        #region Dinamik Raporlama
+
+        private List<AggregatedDataPoint> AggregateDynamic(DateTime start, DateTime end, PeriodType periodType, string dataType)
+        {
+            var s = start.Date;
+            var e = end.Date.AddDays(1);
+            var parts = (dataType ?? "").Split('_');
+            if (parts.Length < 2) return new List<AggregatedDataPoint>();
+
+            var prefix = parts[0].ToLowerInvariant();
+            var propName = parts[1];
+
+            List<RawDataPoint> raw = new List<RawDataPoint>();
+
+            if (prefix == "bilgitek")
+            {
+                var records = _db.BilgiTeknolojileriIstatistikleri.Where(x => x.Border == _border && x.Tarih >= s && x.Tarih < e).ToList();
+                var prop = typeof(BilgiTeknolojileriIstatistik).GetProperty(propName, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                if (prop != null)
+                {
+                    raw = records.Select(x => {
+                        var val = prop.GetValue(x);
+                        decimal num = 0;
+                        if (val != null) decimal.TryParse(val.ToString(), out num);
+                        return new RawDataPoint { Tarih = x.Tarih, Value = num };
+                    }).ToList();
+                }
+            }
+            else if (prefix == "cctv")
+            {
+                var records = _db.CctvIstatistikleri.Where(x => x.Border == _border && x.Tarih >= s && x.Tarih < e).ToList();
+                var prop = typeof(CctvIstatistik).GetProperty(propName, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                if (prop != null)
+                {
+                    raw = records.Select(x => {
+                        var val = prop.GetValue(x);
+                        decimal num = 0;
+                        if (val != null) decimal.TryParse(val.ToString(), out num);
+                        return new RawDataPoint { Tarih = x.Tarih, Value = num };
+                    }).ToList();
+                }
+            }
+            else if (prefix == "trafik")
+            {
+                var records = _db.TrafikIstatistikleri.Where(x => x.Border == _border && x.Tarih >= s && x.Tarih < e).ToList();
+                var prop = typeof(TrafikIstatistik).GetProperty(propName, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                if (prop != null)
+                {
+                    raw = records.Select(x => {
+                        var val = prop.GetValue(x);
+                        decimal num = 0;
+                        if (val != null) decimal.TryParse(val.ToString(), out num);
+                        return new RawDataPoint { Tarih = x.Tarih, Value = num };
+                    }).ToList();
+                }
+            }
+            else if (prefix == "gbtuyap")
+            {
+                var records = _db.GbtUyapSorgulari.Where(x => x.Border == _border && x.Tarih >= s && x.Tarih < e).ToList();
+                var prop = typeof(GbtUyapSorgu).GetProperty(propName, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                if (prop != null)
+                {
+                    raw = records.Select(x => {
+                        var val = prop.GetValue(x);
+                        decimal num = 0;
+                        if (val != null) decimal.TryParse(val.ToString(), out num);
+                        return new RawDataPoint { Tarih = x.Tarih, Value = num };
+                    }).ToList();
+                }
+            }
+            else if (prefix == "ytssorgu")
+            {
+                var records = _db.YtsSorgulari.Where(x => x.Border == _border && x.Tarih >= s && x.Tarih < e).ToList();
+                var prop = typeof(YtsSorgu).GetProperty(propName, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                if (prop != null)
+                {
+                    raw = records.Select(x => {
+                        var val = prop.GetValue(x);
+                        decimal num = 0;
+                        if (val != null) decimal.TryParse(val.ToString(), out num);
+                        return new RawDataPoint { Tarih = x.Tarih, Value = num };
+                    }).ToList();
+                }
+            }
+            else if (prefix == "idari")
+            {
+                var records = _db.IdariBuroIstatistikleri.Where(x => x.Border == _border && x.Tarih >= s && x.Tarih < e).ToList();
+                var prop = typeof(IdariBuroIstatistik).GetProperty(propName, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                if (prop != null)
+                {
+                    raw = records.Select(x => {
+                        var val = prop.GetValue(x);
+                        decimal num = 0;
+                        if (val != null) decimal.TryParse(val.ToString(), out num);
+                        return new RawDataPoint { Tarih = x.Tarih, Value = num };
+                    }).ToList();
+                }
+            }
+            else if (prefix == "guvenlik")
+            {
+                var records = _db.GuvenlikHizmetleriIstatistikleri.Where(x => x.Border == _border && x.Tarih >= s && x.Tarih < e).ToList();
+                var prop = typeof(GuvenlikHizmetleriIstatistik).GetProperty(propName, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                if (prop != null)
+                {
+                    raw = records.Select(x => {
+                        var val = prop.GetValue(x);
+                        decimal num = 0;
+                        if (val != null) decimal.TryParse(val.ToString(), out num);
+                        return new RawDataPoint { Tarih = x.Tarih, Value = num };
+                    }).ToList();
+                }
+            }
 
             return AggregateByPeriod(raw, periodType);
         }
@@ -314,7 +472,7 @@ namespace Istatistik.Services
         private class RawDataPoint
         {
             public DateTime Tarih { get; set; }
-            public int Value { get; set; }
+            public decimal Value { get; set; }
         }
 
         #endregion
