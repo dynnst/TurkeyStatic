@@ -1,5 +1,5 @@
 ﻿@{
-    ViewBag.Title = "Pasaport Bürosu - Veri Girişi";
+    ViewBag.Title = ViewBag.Bureau + " - Veri Girişi";
     string border = ViewBag.Border as string ?? "";
 }
 
@@ -13,7 +13,7 @@
                 <span class="badge bg-primary bg-opacity-10 text-primary p-2 rounded-3 fs-5">
                     <i class="bi bi-passport"></i>
                 </span>
-                <h3 class="mb-0 fw-bold text-dark">Pasaport Bürosu Veri Girişi</h3>
+                <h3 class="mb-0 fw-bold text-dark">@ViewBag.Bureau Veri Girişi</h3>
             </div>
             @if (!string.IsNullOrEmpty(border))
             {
@@ -36,22 +36,8 @@
     <!-- Modül Sekmeleri ve Yeni Kayıt Butonu -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
         <ul class="nav nav-pills gap-2 bg-light p-2 rounded-3 border mb-0" id="ppTabs">
-            <li class="nav-item">
-                <button type="button" class="nav-link active px-3 py-2 fw-semibold" data-type="gunluk">
-                    <i class="bi bi-people-fill me-1"></i> Günlük Yolcu
-                </button>
-            </li>
-            <li class="nav-item">
-                <button type="button" class="nav-link px-3 py-2 fw-semibold" data-type="inad">
-                    <i class="bi bi-person-x-fill me-1"></i> İnad Yolcular
-                </button>
-            </li>
-            <li class="nav-item">
-                <button type="button" class="nav-link px-3 py-2 fw-semibold" data-type="tahdit">
-                    <i class="bi bi-shield-lock-fill me-1"></i> Tahdit Kayıtları
-                </button>
-            </li>
-        </ul>
+    <!-- Tabs will be generated dynamically -->
+</ul>
         <button type="button" class="btn btn-primary px-4 py-2 fw-semibold rounded-pill shadow-sm" id="btnNewRecord" data-bs-toggle="modal" data-bs-target="#recordModal">
             <i class="bi bi-plus-lg me-1"></i> Yeni Kayıt Ekle
         </button>
@@ -206,197 +192,105 @@
 @section scripts {
     <script>
     (function () {
-        var URLS = {
-            list: '@Url.Action("List", "Passport")',
-            save: '@Url.Action("Save", "Passport")',
-            del: '@Url.Action("Delete", "Passport")'
-        };
+        function $(id) { return document.getElementById(id); }
+        var URLS = { list: '/BureauData/Get', save: '/BureauData/Save', del: '/BureauData/Delete' };
 
         var HAT = { 0: 'İç Hat', 1: 'Dış Hat' };
         var YON = { 0: 'Gelen', 1: 'Giden' };
 
         var COUNTRIES = ["ABD", "Afganistan", "Almanya", "Andorra", "Angola", "Antigua ve Barbuda", "Arjantin", "Arnavutluk", "Avustralya", "Avusturya", "Azerbaycan", "Bahamalar", "Bahreyn", "Bangladeş", "Barbados", "Belçika", "Belize", "Benin", "Beyaz Rusya", "Bhutan", "Birleşik Arap Emirlikleri", "Birleşik Krallık", "Bolivya", "Bosna Hersek", "Botsvana", "Brezilya", "Brunei", "Bulgaristan", "Burkina Faso", "Burundi", "Cezayir", "Cibuti", "Çad", "Çekya", "Çin", "Danimarka", "Dominik Cumhuriyeti", "Dominika", "Ekvador", "Ekvator Ginesi", "El Salvador", "Endonezya", "Eritre", "Ermenistan", "Estonya", "Esvatini", "Etiyopya", "Fas", "Fiji", "Fildişi Sahili", "Filipinler", "Filistin", "Finlandiya", "Fransa", "Gabon", "Gambiya", "Gana", "Gine", "Gine-Bissau", "Grenada", "Guatemala", "Guyana", "Güney Afrika", "Güney Kore", "Güney Sudan", "Gürcistan", "Haiti", "Hırvatistan", "Hindistan", "Hollanda", "Honduras", "Irak", "İran", "İrlanda", "İspanya", "İsrail", "İsveç", "İsviçre", "İtalya", "İzlanda", "Jamaika", "Japonya", "Kamboçya", "Kamerun", "Kanada", "Karadağ", "Katar", "Kazakistan", "Kenya", "Kıbrıs", "Kırgızistan", "Kiribati", "Kolombiya", "Komorlar", "Kongo", "Kosta Rika", "Kuveyt", "Kuzey Kore", "Kuzey Makedonya", "Küba", "Laos", "Lesotho", "Letonya", "Liberya", "Libya", "Liechtenstein", "Litvanya", "Lübnan", "Lüksemburg", "Macaristan", "Madagaskar", "Malavi", "Maldivler", "Malezya", "Mali", "Malta", "Marshall Adaları", "Mauritius", "Meksika", "Mısır", "Mikronezya", "Moğolistan", "Moldova", "Monako", "Moritanya", "Mozambik", "Myanmar", "Namibya", "Nauru", "Nepal", "Nikaragua", "Nijer", "Nijerya", "Norveç", "Orta Afrika Cumhuriyeti", "Özbekistan", "Pakistan", "Palau", "Panama", "Papua Yeni Gine", "Paraguay", "Peru", "Polonya", "Portekiz", "Romanya", "Ruanda", "Rusya", "Saint Kitts ve Nevis", "Saint Lucia", "Saint Vincent ve Grenadinler", "Samoa", "San Marino", "Sao Tome ve Principe", "Senegal", "Seyşeller", "Sırbistan", "Sierra Leone", "Singapur", "Slovakya", "Slovenya", "Solomon Adaları", "Somali", "Sri Lanka", "Sudan", "Surinam", "Suriye", "Suudi Arabistan", "Şili", "Tacikistan", "Tanzanya", "Tayland", "Togo", "Tonga", "Trinidad ve Tobago", "Tunus", "Tuvalu", "Türkiye", "Türkmenistan", "Uganda", "Ukrayna", "Umman", "Uruguay", "Ürdün", "Vanuatu", "Vatikan", "Venezuela", "Vietnam", "Yemen", "Yeni Zelanda", "Yeşil Burun Adaları", "Yunanistan", "Zambiya", "Zimbabve"];
-        var INAD_REASONS = [
-            "Geçerli Seyahat Belgesine Sahip Olmayan",
-            "Türkiye'ye Girişi Sakıncalı Görülmesi",
-            "Yeterli Maddi İmkana Sahip Olmaması",
-            "Hakkında Türkiye'ye Giriş Yasağı Bulunması",
-            "Giriş Vizesinin Olmaması",
-            "Pasaport Süresinin Yetersiz Olması",
-            "Sahte Pasaport",
-            "Pasaportta Tahrifat Yapılmış Olması",
-            "Sahte Vize İkamet",
-            "Çalıntı Belge",
-            "180 Günde 90 Gün Uygulamasının İhlali",
-            "Türkiye'ye Girmek İstememesi",
-            "Diğer Sebepler"
-        ];
+        var INAD_REASONS = ["Vize İhlali", "Geçerli Seyahat Belgesi Olmaması", "Sahte Belge Kullanımı", "Kamu Düzeni/Güvenliği Tehdidi", "Yeterli Maddi Kaynak Gösterememe", "Geliş Amacını İzah Edememe", "Giriş Yasağı Bulunması", "Diğer Sebepler"];
 
 
-        var fmtNum = function (v) { return (v == null || v === '') ? '-' : Number(v).toLocaleString('tr-TR'); };
-        var fmtDate = function (v) {
-            if (!v) return '-';
-            var s = String(v).split('T')[0];
-            var p = s.split('-');
-            if (p.length === 3 && p[0].length === 4 && p[1].length === 2 && p[2].length === 2) {
-                return p[2] + '.' + p[1] + '.' + p[0];
-            }
-            return String(v);
-        };
-
-        // Form konfigürasyonları düzenlendi: section eklendi, grid (w) değerleri 12'ye oranlandı.
-        var TYPES = {
-            gunluk: {
-                title: 'Günlük Yolcu', search: false, year: true, icon: 'bi-people-fill',
-                fields: [
-                    { n: 'Tarih', l: 'Tarih', t: 'date', req: true, w: 4, section: '<i class="bi bi-calendar-check me-2"></i>Periyot Bilgisi' },
-                    { n: 'Yon', l: 'Yön', t: 'select', opts: YON, w: 4 },
-                    { n: 'HatTuru', l: 'Hat Türü', t: 'select', opts: HAT, w: 4 },
-
-                    { n: 'GunlukYolcuSayisi', l: 'Günlük Yolcu Sayısı', t: 'int', req: true, w: 6, ph: '0', section: '<i class="bi bi-bar-chart-fill me-2"></i>İstatistikler' },
-                    { n: 'UcakSayisi', l: 'Uçak Sayısı', t: 'int', w: 6, ph: '0' }
-                ],
-                cols: [
-                    ['Tarih', 'Tarih', fmtDate],
-                    ['Yön', 'Yon', function (v) { return '<span class="badge ' + (v == 0 ? 'bg-info text-dark' : 'bg-warning text-dark') + '">' + (YON[v] || '-') + '</span>'; }],
-                    ['Hat', 'HatTuru', function (v) { return '<span class="badge bg-secondary">' + (HAT[v] || '-') + '</span>'; }],
-                    ['Yolcu Sayısı', 'GunlukYolcuSayisi', fmtNum],
-                    ['Uçak Sayısı', 'UcakSayisi', fmtNum]
-                ]
-            },
-            inad: {
-                title: 'İnad Yolcular', search: true, year: true, icon: 'bi-person-x-fill',
-                fields: [
-                    // Satır 1: Kayıt ve Kimlik
-                    
-                    { n: 'Tarih', l: 'İşlem Tarihi', t: 'date', req: true, w: 4, section: '<i class="bi bi-card-heading me-2"></i>Kayıt ve Kimlik Bilgileri' },
-                    { n: 'Uyruk', l: 'Uyruk', t: 'select_str', opts: COUNTRIES, w: 5 },
-
-                    // Satır 2: Kişisel
-                    { n: 'AdSoyad', l: 'Adı Soyadı', t: 'text', req: true, max: 200, w: 5, ph: 'Yolcunun adı ve soyadı' },
-                    { n: 'PasaportNo', l: 'Pasaport No', t: 'text', max: 50, w: 4, ph: 'Pasaport / Belge No' },
-                    { n: 'DogumTarihi', l: 'Doğum Tarihi', t: 'date', w: 3 },
-
-                    // Satır 3: Seyahat
-                    { n: 'GelisTarihi', l: 'Geliş Tarihi', t: 'date', w: 3, section: '<i class="bi bi-airplane me-2"></i>Seyahat ve Uçuş Bilgileri' },
-                    { n: 'GidisTarihi', l: 'Gidiş Tarihi', t: 'date', w: 3 },
-                    { n: 'HavayoluSirketi', l: 'Havayolu Şirketi', t: 'text', list: 'havayoluList', max: 200, w: 6, ph: 'Örn: THY, Pegasus' },
-
-                    // Satır 4: Gerekçe ve Güzergah
-                    { n: 'GeldigiUlke', l: 'Geldiği Ülke', t: 'select_str', opts: COUNTRIES, w: 4, section: '<i class="bi bi-geo-alt me-2"></i>Güzergah ve Gerekçe' },
-                    { n: 'GittigiUlke', l: 'Gittiği Ülke', t: 'select_str', opts: COUNTRIES, w: 4 },
-                    { n: 'InadGerekcesi', l: 'İnad Gerekçesi', t: 'select_str', opts: INAD_REASONS, w: 4 },
-
-                    // Satır 5: Notlar
-                    { n: 'Aciklamalar', l: 'Ek Açıklamalar', t: 'textarea', max: 1000, w: 12, ph: 'Varsa diğer notlar...', section: '<i class="bi bi-journal-text me-2"></i>Notlar' }
-                ],
-                cols: [
-                    ['Sıra', 'SiraNo', function(v) { return '<span class="text-muted fw-semibold">#' + escapeHtml(v || '-') + '</span>'; }],
-                    ['İşlem Tarihi', 'Tarih', fmtDate],
-                    ['Adı Soyadı', 'AdSoyad', function(v) { return '<span class="fw-bold text-dark"><i class="bi bi-person me-1 text-secondary"></i>' + escapeHtml(v || '-') + '</span>'; }],
-                    ['Uyruk', 'Uyruk', function(v) { return v ? '<span class="badge bg-light text-dark border">' + escapeHtml(v) + '</span>' : '-'; }],
-                    ['Pasaport No', 'PasaportNo', function(v) { return v ? '<span class="badge bg-light text-primary border code-tag">' + escapeHtml(v) + '</span>' : '-'; }],
-                    ['Geliş / Gidiş', 'GelisTarihi', function(v, row) {
-                        return '<div class="small"><span class="text-success"><i class="bi bi-box-arrow-in-down-right"></i> ' + escapeHtml(fmtDate(row.GelisTarihi)) + '</span><br>' +
-                               '<span class="text-danger"><i class="bi bi-box-arrow-up-right"></i> ' + escapeHtml(fmtDate(row.GidisTarihi)) + '</span></div>';
-                    }],
-                    ['Güzergah', 'GeldigiUlke', function(v, row) {
-                        return '<span class="small">' + escapeHtml(row.GeldigiUlke || '-') + ' <i class="bi bi-arrow-right text-muted mx-1"></i> ' + escapeHtml(row.GittigiUlke || '-') + '</span>';
-                    }],
-                    ['Havayolu', 'HavayoluSirketi', function(v) { return v ? '<span class="small text-muted"><i class="bi bi-airplane me-1"></i>' + escapeHtml(v) + '</span>' : '-'; }],
-                    ['Gerekçe', 'InadGerekcesi', function(v) {
-                        return v ? '<span class="badge bg-warning bg-opacity-25 text-dark border border-warning" title="' + escapeHtml(v) + '">' + escapeHtml(v) + '</span>' : '-';
-                    }]
-                ]
-            },
-            tahdit: {
-                title: 'Tahdit Kayıtları', search: true, year: true, icon: 'bi-shield-lock-fill',
-                fields: [
-                    // Satır 1: Tahdit Kodu
-                    { n: 'Tarih', l: 'İşlem Tarihi', t: 'date', req: true, w: 4, section: '<i class="bi bi-shield-lock me-2"></i>Tahdit Detayları' },
-                    { n: 'TahditKodu', l: 'Tahdit Kodu', t: 'text', list: 'tahditKoduList', req: true, max: 20, w: 4, ph: 'Örn: V-84, C-101, G-87' },
-                    { n: 'Uyruk', l: 'Uyruk', t: 'select_str', opts: COUNTRIES, w: 4 },
-
-                    // Satır 2: Kişi Bilgileri
-                    { n: 'AdSoyad', l: 'Adı Soyadı', t: 'text', req: true, max: 200, w: 5, ph: 'Kişi adı ve soyadı', section: '<i class="bi bi-person-badge me-2"></i>Kişi Bilgileri' },
-                    { n: 'PasaportVeyaKimlikNo', l: 'Pasaport / Kimlik No', t: 'text', max: 100, w: 4, ph: 'Belge numarası' },
-                    { n: 'DogumTarihi', l: 'Doğum Tarihi', t: 'date', w: 3 },
-
-                    // Satır 3: Neden
-                    { n: 'Neden', l: 'Tahdit Nedeni ve Açıklama', t: 'textarea', max: 500, w: 12, ph: 'Tahdit gerekçesi, mahkeme kararı veya ilgili şerh detayı...', section: '<i class="bi bi-justify-left me-2"></i>Gerekçe ve Karar Özeti' }
-                ],
-                cols: [
-                    ['Tarih', 'Tarih', fmtDate],
-                    ['Adı Soyadı', 'AdSoyad', function(v) { return '<span class="fw-bold text-dark"><i class="bi bi-shield-shaded me-1 text-danger"></i>' + escapeHtml(v || '-') + '</span>'; }],
-                    ['Uyruk', 'Uyruk', function(v) { return v ? '<span class="badge bg-light text-dark border">' + escapeHtml(v) + '</span>' : '-'; }],
-                    ['Pasaport / Kimlik No', 'PasaportVeyaKimlikNo', function(v) { return v ? '<span class="badge bg-light text-secondary border code-tag">' + escapeHtml(v) + '</span>' : '-'; }],
-                    ['Tahdit Kodu', 'TahditKodu', function(v) {
-                        return '<span class="badge bg-danger text-white px-2 py-1 shadow-sm"><i class="bi bi-exclamation-triangle-fill me-1"></i>' + escapeHtml(v || '-') + '</span>';
-                    }],
-                    ['Tahdit Nedeni', 'Neden', function(v) {
-                        return v ? '<span class="small text-muted" title="' + escapeHtml(v) + '">' + escapeHtml(v.length > 60 ? v.substring(0, 60) + '...' : v) + '</span>' : '-';
-                    }]
-                ]
-            }
-        };
-
-        var current = 'gunluk';
+        
         var editingId = 0;
         var rows = [];
-
         var currentPage = 1;
         var pageSize = 15;
+        var current;
+        var BUREAU = '@ViewBag.Bureau';
+        var TYPES = {};
 
-        function $(id) { return document.getElementById(id); }
-
-        function escapeHtml(value) {
-            return String(value == null ? '' : value)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
-
-        function token() {
-            var input = document.querySelector('#ppApp input[name="__RequestVerificationToken"]');
-            return input ? input.value : '';
-        }
-
-        function showMsg(msg, ok, inModal) {
-            var box = inModal ? $('modalAlertBox') : $('alertBox');
-            if (!box) box = $('alertBox');
-            box.innerHTML = '';
-
-            var d = document.createElement('div');
-            d.className = 'alert alert-' + (ok ? 'success' : 'danger') +
-                ' alert-dismissible fade show d-flex align-items-center shadow-sm';
-
-            var icon = document.createElement('i');
-            icon.className = 'bi ' +
-                (ok ? 'bi-check-circle-fill text-success' : 'bi-exclamation-triangle-fill text-danger') +
-                ' fs-5 me-2';
-
-            var content = document.createElement('div');
-            content.innerHTML = msg == null ? '' : String(msg);
-
-            var close = document.createElement('button');
-            close.type = 'button';
-            close.className = 'btn-close';
-            close.setAttribute('data-bs-dismiss', 'alert');
-            close.setAttribute('aria-label', 'Kapat');
-
-            d.appendChild(icon);
-            d.appendChild(content);
-            d.appendChild(close);
-            box.appendChild(d);
-
-            setTimeout(function () {
-                if (d.parentNode) {
-                    d.classList.remove('show');
-                    setTimeout(function () {
-                        if (d.parentNode) d.remove();
-                    }, 200);
+        if (BUREAU === 'IDARI') {
+            TYPES = {
+                idari: {
+                    title: 'İdari Büro', search: false, year: true, icon: 'bi-file-earmark-text',
+                    fields: [
+                        { n: 'Tarih', l: 'İşlem Tarihi', t: 'date', req: true, w: 4, section: 'Evrak ve Personel' },
+                        { n: 'GelenEvrak', l: 'Gelen Evrak', t: 'int', w: 4 },
+                        { n: 'GidenEvrak', l: 'Giden Evrak', t: 'int', w: 4 },
+                        { n: 'ToplamPersonelSayisi', l: 'Toplam Personel', t: 'int', w: 4 },
+                        { n: 'IdariBuroPersonelSayisi', l: 'İdari Büro Personeli', t: 'int', w: 4 }
+                    ],
+                    cols: [
+                        ['Tarih', 'Tarih', function(v) { return v ? v.substring(0,10) : '-'; }],
+                        ['Gelen Evrak', 'GelenEvrak'],
+                        ['Giden Evrak', 'GidenEvrak'],
+                        ['Toplam Per.', 'ToplamPersonelSayisi'],
+                        ['İdari Per.', 'IdariBuroPersonelSayisi']
+                    ]
+                }
+            };
+        } else if (BUREAU === 'GUVENLIK') {
+            TYPES = {
+                guvenlik: {
+                    title: 'Güvenlik Hizmetleri (Ana Nizamiye)', search: false, year: true, icon: 'bi-shield-lock',
+                    fields: [
+                        { n: 'Tarih', l: 'İşlem Tarihi', t: 'date', req: true, w: 4, section: 'Araç İstatistikleri' },
+                        { n: 'GirisYapanArac', l: 'Giriş Yapan Araç', t: 'int', w: 4 },
+                        { n: 'KontrolEdilenArac', l: 'Kontrol Edilen Araç', t: 'int', w: 4 }
+                    ],
+                    cols: [
+                        ['Tarih', 'Tarih', function(v) { return v ? v.substring(0,10) : '-'; }],
+                        ['Giriş Yapan', 'GirisYapanArac'],
+                        ['Kontrol Edilen', 'KontrolEdilenArac']
+                    ]
+                }
+            };
+        } else if (BUREAU === 'BILGI_TEK') {
+            TYPES = {
+                bilgitek: {
+                    title: 'Bilişim ve Teknoloji (Günlük)', search: false, year: true, icon: 'bi-pc-display',
+                    fields: [
+                        { n: 'Tarih', l: 'İşlem Tarihi', t: 'date', req: true, w: 4, section: 'Günlük İstatistikler' },
+                        { n: 'KameraKaydiIncelemesi', l: 'Kamera Kaydı İncelemesi', t: 'int', w: 4 },
+                        { n: 'TahditBakilanSorunluYolcu', l: 'Tahdit Bakılan Sorunlu Yolcu', t: 'int', w: 4 },
+                        { n: 'YurdaGirisCikisBelgeTalebi', l: 'Giriş Çıkış Belge Talebi', t: 'int', w: 4 },
+                          { n: 'TahditEkleme', l: 'Tahdit Ekleme', t: 'int', w: 4 },
+                          { n: 'TahditKaldirma', l: 'Tahdit Kaldırma', t: 'int', w: 4 },
+                        { n: 'PtsAracAraniyor', l: 'PTS: Araç Aranıyor', t: 'int', w: 4, section: 'PTS Verileri' },
+                        { n: 'PtsAracCalinti', l: 'PTS: Araç Çalıntı', t: 'int', w: 4 },
+                        { n: 'PtsPlakaCalinti', l: 'PTS: Plaka Çalıntı', t: 'int', w: 4 },
+                        { n: 'PtsPlakaKayip', l: 'PTS: Plaka Kayıp', t: 'int', w: 4 }
+                    ],
+                    cols: [
+                        ['Tarih', 'Tarih', function(v) { return v ? v.substring(0,10) : '-'; }],
+                        ['Kamera', 'KameraKaydiIncelemesi'],
+                        ['Tahdit/Yolcu', 'TahditBakilanSorunluYolcu'],
+                        ['Giriş/Çıkış Belge', 'YurdaGirisCikisBelgeTalebi'],
+                          ['Tahdit Ekleme', 'TahditEkleme'],
+                          ['Tahdit Kaldırma', 'TahditKaldirma'],
+                        ['Araç Aranan', 'PtsAracAraniyor']
+                    ]
+                },
+                cctv: {
+                    title: 'CCTV Kamera İstatistiği', search: false, year: true, icon: 'bi-camera-video',
+                    fields: [
+                        { n: 'Tarih', l: 'İşlem Tarihi', t: 'date', req: true, w: 4, section: 'Kamera Sayıları' },
+                        { n: 'Bolge', l: 'Bölge', t: 'select_str', opts: ['Terminal Dışı', 'Terminal İçi', 'Pist-Apron', 'Apron'], req: true, w: 4 },
+                        { n: 'IpSabit', l: 'IP Sabit Kamera', t: 'int', w: 3, section: 'Kamera Türleri' },
+                        { n: 'IpHareketli', l: 'IP Hareketli Kamera', t: 'int', w: 3 },
+                        { n: 'AnalogSabit', l: 'Analog Sabit Kamera', t: 'int', w: 3 },
+                        { n: 'AnalogHareketli', l: 'Analog Hareketli', t: 'int', w: 3 }
+                    ],
+                    cols: [
+                        ['Tarih', 'Tarih', function(v) { return v ? v.substring(0,10) : '-'; }],
+                        ['Bölge', 'Bolge'],
+                        ['IP Sabit', 'IpSabit'],
+                        ['IP Hareketli', 'IpHareketli'],
+                        ['Analog Sabit', 'AnalogSabit'],
+                        ['Analog Hareketli', 'AnalogHareketli']
+                    ]
                 }
             }, 6000);
         }
@@ -656,7 +550,7 @@
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Kaydediliyor...';
 
-            post(URLS.save, {
+            post(URLS.save + '?bureau=' + encodeURIComponent(BUREAU), {
                 type: current,
                 payload: JSON.stringify(payload)
             })
@@ -688,7 +582,7 @@
 
         function remove(row) {
             if (!confirm('Bu kaydı silmek istediğinize emin misiniz?')) return;
-            post(URLS.del, { type: current, id: row.Id })
+            post(URLS.del + '?bureau=' + encodeURIComponent(BUREAU), { type: current, id: row.Id })
                 .then(function (r) {
                     showMsg(r.success ? 'Kayıt başarıyla silindi.' : r.message, r.success);
                     if (r.success) {
@@ -776,6 +670,8 @@
                     act.className = 'text-end text-nowrap px-3';
 
                     var btnEdit = document.createElement('button');
+                    btnEdit.setAttribute('data-bs-toggle', 'modal');
+                    btnEdit.setAttribute('data-bs-target', '#recordModal');
                     btnEdit.className = 'btn btn-sm btn-outline-primary me-1 rounded-pill px-2';
                     btnEdit.innerHTML = '<i class="bi bi-pencil"></i>';
                     btnEdit.title = 'Düzenle';
@@ -801,7 +697,7 @@
 
         function load() {
             var cfg = TYPES[current];
-            var qs = 'type=' + encodeURIComponent(current);
+            var qs = 'bureau=' + encodeURIComponent(BUREAU) + '&type=' + encodeURIComponent(current);
             var y = $('filterYear').value;
             if (cfg.year && y) qs += '&year=' + encodeURIComponent(y);
             var s = $('filterSearch').value;
@@ -890,6 +786,26 @@
                 yearSelect.appendChild(opt);
             }
             yearSelect.addEventListener('change', load);
+        }
+
+        
+        var tabContainer = $('ppTabs');
+        if (tabContainer) {
+            tabContainer.innerHTML = '';
+            var isFirst = true;
+            Object.keys(TYPES).forEach(function(k) {
+                var cfg = TYPES[k];
+                if (isFirst) { current = k; }
+                var li = document.createElement('li');
+                li.className = 'nav-item';
+                var btn = document.createElement('button');
+                btn.className = 'nav-link px-3 py-2 fw-medium border-0 ' + (isFirst ? 'active' : '');
+                btn.setAttribute('data-type', k);
+                btn.innerHTML = '<i class="bi ' + (cfg.icon || 'bi-table') + ' me-2"></i>' + cfg.title;
+                li.appendChild(btn);
+                tabContainer.appendChild(li);
+                isFirst = false;
+            });
         }
 
         resetForm();

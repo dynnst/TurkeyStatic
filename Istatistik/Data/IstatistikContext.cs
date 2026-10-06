@@ -1,4 +1,4 @@
-﻿using System.Data.Entity;
+using System.Data.Entity;
 
 namespace Istatistik.Models
 {
@@ -24,5 +24,15 @@ namespace Istatistik.Models
         public DbSet<Bureau> Bureaus { get; set; }
         public DbSet<UserAssignment> UserAssignments { get; set; }
         public DbSet<UserBureau> UserBureaus { get; set; }
+
+        public DbSet<IdariBuroIstatistik> IdariBuroIstatistikleri { get; set; }
+        public DbSet<GuvenlikHizmetleriIstatistik> GuvenlikHizmetleriIstatistikleri { get; set; }
+        public DbSet<BilgiTeknolojileriIstatistik> BilgiTeknolojileriIstatistikleri { get; set; }
+        public DbSet<CctvIstatistik> CctvIstatistikleri { get; set; }
+        public DbSet<TrafikIstatistik> TrafikIstatistikleri { get; set; }
+        public DbSet<GbtUyapSorgu> GbtUyapSorgulari { get; set; }
+        public DbSet<SucOnlemeIcmal> SucOnlemeIcmallari { get; set; }
+        public DbSet<YtsSorgu> YtsSorgulari { get; set; }
+        public DbSet<SeyahatBelgesiRiskAnaliz> SeyahatBelgesiRiskAnalizleri { get; set; }
     }
 }

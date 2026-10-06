@@ -162,6 +162,7 @@
     <Compile Include="Controllers\BureauController.cs" />
     <Compile Include="Controllers\CrimePreventionActivitiesController.cs" />
     <Compile Include="Controllers\CrimeStatisticsController.cs" />
+    <Compile Include="Controllers\BureauDataController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\PassportController.cs" />
     <Compile Include="Controllers\QueryStatisticsController.cs" />
@@ -198,6 +199,14 @@
     <Compile Include="Migrations\202610041617394_AddPassportMissingFields.Designer.cs">
       <DependentUpon>202610041617394_AddPassportMissingFields.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202610061241505_YeniBirimler.cs" />
+    <Compile Include="Migrations\202610061241505_YeniBirimler.Designer.cs">
+      <DependentUpon>202610061241505_YeniBirimler.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202610061306584_SunumGuncellemeleri.cs" />
+    <Compile Include="Migrations\202610061306584_SunumGuncellemeleri.Designer.cs">
+      <DependentUpon>202610061306584_SunumGuncellemeleri.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AuditLog.cs" />
     <Compile Include="Models\Authorization.cs" />
@@ -205,6 +214,7 @@
     <Compile Include="Models\CrimeStatistic.cs" />
     <Compile Include="Models\EUser.cs" />
     <Compile Include="Models\PassportModels.cs" />
+    <Compile Include="Models\BureauModels.cs" />
     <Compile Include="Models\QueryStatistic.cs" />
     <Compile Include="Models\ReportModels.cs" />
     <Compile Include="Models\Unit.cs" />
@@ -214,6 +224,7 @@
     <Compile Include="Services\AdminService.cs" />
     <Compile Include="Services\AuthService.cs" />
     <Compile Include="Services\BureauSeeder.cs" />
+    <Compile Include="Services\DataService.cs" />
     <Compile Include="Services\IdentityPasswordVerifier.cs" />
     <Compile Include="Services\PassportService.Crud.cs" />
     <Compile Include="Services\PassportService.cs" />
@@ -387,6 +398,7 @@
     <Content Include="Views\Account\Profile.cshtml" />
     <Content Include="Views\Admin\Index.cshtml" />
     <Content Include="Views\Passport\Index.cshtml" />
+    <Content Include="Views\BureauData\Index.cshtml" />
     <Content Include="Views\Bureau\Index.cshtml" />
     <Content Include="Views\Reports\Index.cshtml" />
   </ItemGroup>
@@ -439,6 +451,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202610041617394_AddPassportMissingFields.resx">
       <DependentUpon>202610041617394_AddPassportMissingFields.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202610061241505_YeniBirimler.resx">
+      <DependentUpon>202610061241505_YeniBirimler.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202610061306584_SunumGuncellemeleri.resx">
+      <DependentUpon>202610061306584_SunumGuncellemeleri.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

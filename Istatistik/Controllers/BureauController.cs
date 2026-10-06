@@ -1,4 +1,4 @@
-﻿using Istatistik.Filters;
+using Istatistik.Filters;
 using Istatistik.Models;
 using Istatistik.Services;
 using System.Collections.Generic;
@@ -54,8 +54,7 @@ namespace Istatistik.Controllers
             if (code == BureauCodes.Pasaport)
                 return Url.Action("Index", "Passport");
 
-            // Diğer bürolar şimdilik mevcut veri giriş ekranını kullanır
-            return Url.Action("DataEntry", "Home");
+            return Url.Action("Index", "BureauData", new { bureau = code });
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -14,6 +14,14 @@ namespace Istatistik.Models
     public static class BureauCodes
     {
         public const string Pasaport = "PASAPORT";
+        public const string Idari = "IDARI";
+        public const string Guvenlik = "GUVENLIK";
+        public const string BilgiTeknolojileri = "BILGI_TEK";
+        public const string Trafik = "TRAFIK";
+        public const string GbtUyap = "GBT_UYAP";
+        public const string SucOnleme = "SUC_ONLEME";
+        public const string YtsSorgu = "YTS_SORGU";
+        public const string SeyahatBelgeRisk = "SEYAHAT_BELGE_RISK";
     }
 
     /// <summary>

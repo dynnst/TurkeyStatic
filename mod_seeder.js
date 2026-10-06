@@ -1,16 +1,12 @@
-﻿using Istatistik.Models;
-using System.Linq;
+const fs = require('fs');
+let code = fs.readFileSync('C:/Users/fb/Downloads/Istatistik/Istatistik/Istatistik/Services/BureauSeeder.cs', 'utf8');
 
-namespace Istatistik.Services
-{
-    public static class BureauSeeder
-    {
-        private static readonly string[][] Defaults =
+code = code.replace(/private static readonly string\[\]\[\] Defaults =[\s\S]*?db\.SaveChanges\(\);\s*\}/, 
+`private static readonly string[][] Defaults =
         {
             new[] { BureauCodes.Pasaport, "Pasaport Bürosu" },
-            new[] { BureauCodes.Idari, "İdari Büro Amirliği" },
-            new[] { BureauCodes.Guvenlik, "Güvenlik Hizmetleri Büro Amirliği" },
             new[] { BureauCodes.SucOnleme, "Suç Önleme Bürosu" },
+            new[] { "IDARI", "İdari Büro" },
             new[] { BureauCodes.Trafik, "Trafik Bürosu" },
             new[] { BureauCodes.BilgiTeknolojileri, "Bilgi Teknolojileri Büro Amirliği" },
             new[] { BureauCodes.GbtUyap, "GBT ve UYAP Sorgulama Faaliyetleri" },
@@ -33,6 +29,6 @@ namespace Istatistik.Services
             }
 
             db.SaveChanges();
-        }
-    }
-}
+        }`);
+
+fs.writeFileSync('C:/Users/fb/Downloads/Istatistik/Istatistik/Istatistik/Services/BureauSeeder.cs', code, 'utf8');
