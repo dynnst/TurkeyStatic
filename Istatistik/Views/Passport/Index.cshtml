@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewBag.Title = "Pasaport Bürosu - Veri Girişi";
     string border = ViewBag.Border as string ?? "";
 }
@@ -71,6 +71,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
                 </div>
                 <div class="modal-body p-4 bg-white">
+                    <div id="modalAlertBox"></div>
                     <div class="row g-3" id="formFields"></div>
                 </div>
                 <div class="modal-footer bg-light border-top py-3 px-4 d-flex justify-content-between">
@@ -344,8 +345,9 @@
             return input ? input.value : '';
         }
 
-        function showMsg(msg, ok) {
-            var box = $('alertBox');
+        function showMsg(msg, ok, inModal) {
+            var box = inModal ? $('modalAlertBox') : $('alertBox');
+            if (!box) box = $('alertBox');
             box.innerHTML = '';
 
             var d = document.createElement('div');
@@ -358,7 +360,7 @@
                 ' fs-5 me-2';
 
             var content = document.createElement('div');
-            content.textContent = msg == null ? '' : String(msg);
+            content.innerHTML = msg == null ? '' : String(msg);
 
             var close = document.createElement('button');
             close.type = 'button';
@@ -524,6 +526,30 @@
             return obj;
         }
 
+        
+        window.editDuplicate = function(id) {
+            var row = rows.find(function(r) { return r.Id === id; });
+            if (row) {
+                fillForm(row);
+                var box = $('modalAlertBox');
+                if (box) box.innerHTML = '';
+            } else {
+                post('@Url.Action("Get", "Passport")', { type: current, id: id })
+                    .then(function(r) {
+                        if (r.success && r.data) {
+                            fillForm(r.data);
+                            var box = $('modalAlertBox');
+                            if (box) box.innerHTML = '';
+                        } else {
+                            showMsg('Kayıt bulunamadı.', false, true);
+                        }
+                    })
+                    .catch(function() {
+                        showMsg('Kayıt getirilirken hata oluştu.', false, true);
+                    });
+            }
+        };
+
         function save() {
             var cfg = TYPES[current];
 
@@ -538,7 +564,7 @@
                 var value = el ? String(el.value || '').trim() : '';
 
                 if (f.req && value === '') {
-                    showMsg(f.l + ' alanı zorunludur.', false);
+                    showMsg(f.l + ' alanı zorunludur.', false, true);
                     if (el) {
                         el.classList.add('is-invalid');
                         el.focus();
@@ -548,7 +574,7 @@
                 if (f.t === 'int' && value !== '') {
                     var intValue = Number(value);
                     if (!Number.isInteger(intValue) || intValue < 0) {
-                        showMsg(f.l + ' alanına 0 veya daha büyük bir tam sayı giriniz.', false);
+                        showMsg(f.l + ' alanına 0 veya daha büyük bir tam sayı giriniz.', false, true);
                         if (el) {
                             el.classList.add('is-invalid');
                             el.focus();
@@ -570,8 +596,16 @@
                 payload: JSON.stringify(payload)
             })
                 .then(function (r) {
-                    if (!r || r.success !== true) throw new Error((r && r.message) || 'Kayıt işlemi gerçekleştirilemedi.');
-                    showMsg(editingId ? 'Kayıt güncellendi.' : 'Kayıt başarıyla oluşturuldu.', true);
+                    if (!r || r.success !== true) {
+                        if (r && r.duplicateId) {
+                            var errMsg = (r.message || 'Kayıt zaten var.') + ' <button type="button" class="btn btn-sm btn-warning ms-3" onclick="editDuplicate(' + r.duplicateId + ')">Mevcut Kaydı Düzenle</button>';
+                            showMsg(errMsg, false, true);
+                        } else {
+                            throw new Error((r && r.message) || 'Kayıt işlemi gerçekleştirilemedi.');
+                        }
+                        return;
+                    }
+                    showMsg(editingId ? 'Kayıt güncellendi.' : 'Kayıt başarıyla oluşturuldu.', true, true);
                     resetForm();
                     var modalElement = document.getElementById('recordModal');
                     var modal = bootstrap.Modal.getInstance(modalElement);
@@ -579,7 +613,7 @@
                     load();
                 })
                 .catch(function (err) {
-                    showMsg(err && err.message ? err.message : 'Kayıt sırasında sunucu hatası oluştu.', false);
+                    showMsg(err && err.message ? err.message : 'Kayıt sırasında sunucu hatası oluştu.', false, true);
                 })
                 .then(function () {
                     btn.disabled = false;
