@@ -1,11 +1,11 @@
-@model List<Istatistik.Controllers.BureauController.BureauItem>
+ï»¿@model List<Istatistik.Controllers.BureauController.BureauItem>
 @{
-    ViewBag.Title = "Veri Girişi - Büro Seçimi";
+    ViewBag.Title = "Veri GiriÅŸi - BÃ¼ro SeÃ§imi";
     string border = ViewBag.Border as string ?? "";
 }
 
 <div class="container py-3">
-    <h3 class="mb-1"><i class="bi bi-pencil-square"></i> Veri Girişi</h3>
+    <h3 class="mb-1"><i class="bi bi-pencil-square"></i> Veri GiriÅŸi</h3>
     <div class="text-muted mb-4"><i class="bi bi-building"></i> @border</div>
 
     @if (Model == null || Model.Count == 0)
@@ -13,17 +13,17 @@
         <div class="alert alert-warning">
             @if (string.IsNullOrWhiteSpace(border))
             {
-                <text>Havalimanı bilginiz (E_User.fldBorder) tanımlı değil, bu yüzden büro listelenemiyor. Rol: <strong>@ViewBag.Role</strong>.</text>
+                <text>HavalimanÄ± bilginiz (E_User.fldBorder) tanÄ±mlÄ± deÄŸil, bu yÃ¼zden bÃ¼ro listelenemiyor. Rol: <strong>@ViewBag.Role</strong>.</text>
             }
             else
             {
-                <text>@border havalimanında size atanmış bir büro bulunmuyor. Rol: <strong>@ViewBag.Role</strong>. Yetki Yönetimi ekranından büro atanmalıdır.</text>
+                <text>@border havalimanï¿½nda size atanmÄ±ÅŸï¿½ bir bÃ¼ro bulunmuyor. Rol: <strong>@ViewBag.Role</strong>. Yetki YÃ¶netimi ekranÄ±ndan bÃ¼ro atanmalÄ±dÄ±r.</text>
             }
         </div>
     }
     else
     {
-        <p>Veri gireceğiniz büroyu seçin:</p>
+        <p>Veri gireceÄŸiniz bÃ¼royu seÃ§in:</p>
         <div class="row g-3">
             @foreach (var b in Model)
             {

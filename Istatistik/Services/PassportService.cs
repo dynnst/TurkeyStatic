@@ -1,4 +1,4 @@
-﻿using Istatistik.Models;
+using Istatistik.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -125,6 +125,19 @@ namespace Istatistik.Services
                     ToplamUcak = gu + bu
                 });
             }
+            if (list.Count > 0)
+            {
+                var distinctPeriods = list.Select(x => new { x.Yil, x.Ay }).Distinct().ToList();
+                foreach (var p in distinctPeriods)
+                {
+                    var existing = _db.YolcuUcakIstatistikleri.Where(x => x.Border == _border && x.Yil == p.Yil && x.Ay == p.Ay);
+                    if (existing.Any())
+                    {
+                        _db.YolcuUcakIstatistikleri.RemoveRange(existing);
+                    }
+                }
+                _db.SaveChanges();
+            }
             return Save(_db.YolcuUcakIstatistikleri, list);
         }
 
@@ -154,6 +167,19 @@ namespace Istatistik.Services
                     OnAylikToplam = ParseInt(cols[5])
                 });
             }
+            if (list.Count > 0)
+            {
+                var distinctDates = list.Select(x => x.Tarih).Distinct().ToList();
+                foreach (var d in distinctDates)
+                {
+                    var existing = _db.GunlukZamanSerisiYolcular.Where(x => x.Border == _border && x.Tarih == d);
+                    if (existing.Any())
+                    {
+                        _db.GunlukZamanSerisiYolcular.RemoveRange(existing);
+                    }
+                }
+                _db.SaveChanges();
+            }
             return Save(_db.GunlukZamanSerisiYolcular, list);
         }
 
@@ -170,6 +196,19 @@ namespace Istatistik.Services
                 if (i.GelisTarihi == DateTime.MinValue) i.GelisTarihi = null;
                 if (i.GidisTarihi == DateTime.MinValue) i.GidisTarihi = null;
             }
+            if (list.Count > 0)
+            {
+                var distinctDates = list.Select(x => x.Tarih).Distinct().ToList();
+                foreach (var d in distinctDates)
+                {
+                    var existing = _db.InadYolcular.Where(x => x.Border == _border && x.Tarih == d);
+                    if (existing.Any())
+                    {
+                        _db.InadYolcular.RemoveRange(existing);
+                    }
+                }
+                _db.SaveChanges();
+            }
             return Save(_db.InadYolcular, list);
         }
 
@@ -183,6 +222,19 @@ namespace Istatistik.Services
                 t.Id = 0;
                 t.Border = _border;
                 if (t.DogumTarihi == DateTime.MinValue) t.DogumTarihi = null;
+            }
+            if (list.Count > 0)
+            {
+                var distinctDates = list.Select(x => x.Tarih).Distinct().ToList();
+                foreach (var d in distinctDates)
+                {
+                    var existing = _db.TahditKayitlari.Where(x => x.Border == _border && x.Tarih == d);
+                    if (existing.Any())
+                    {
+                        _db.TahditKayitlari.RemoveRange(existing);
+                    }
+                }
+                _db.SaveChanges();
             }
             return Save(_db.TahditKayitlari, list);
         }
@@ -198,6 +250,19 @@ namespace Istatistik.Services
                 if (h.BitisTarihi == DateTime.MinValue) h.BitisTarihi = null;
                 if (string.IsNullOrWhiteSpace(h.TarihAraligi) && h.BaslangicTarihi.HasValue && h.BitisTarihi.HasValue)
                     h.TarihAraligi = h.BaslangicTarihi.Value.ToString("dd.MM.yyyy") + " - " + h.BitisTarihi.Value.ToString("dd.MM.yyyy");
+            }
+            if (list.Count > 0)
+            {
+                var distinctDates = list.Where(x => x.BaslangicTarihi.HasValue).Select(x => x.BaslangicTarihi.Value).Distinct().ToList();
+                foreach (var d in distinctDates)
+                {
+                    var existing = _db.HaftalikOlayCizelgeleri.Where(x => x.Border == _border && x.BaslangicTarihi == d);
+                    if (existing.Any())
+                    {
+                        _db.HaftalikOlayCizelgeleri.RemoveRange(existing);
+                    }
+                }
+                _db.SaveChanges();
             }
             return Save(_db.HaftalikOlayCizelgeleri, list);
         }
@@ -255,5 +320,11 @@ namespace Istatistik.Services
         }
 
         #endregion
+    }
+
+    public class DuplicateRecordException : Exception
+    {
+        public int ExistingId { get; }
+        public DuplicateRecordException(string message, int existingId) : base(message) { ExistingId = existingId; }
     }
 }

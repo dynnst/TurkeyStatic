@@ -1,4 +1,4 @@
-﻿using Istatistik.Filters;
+using Istatistik.Filters;
 using Istatistik.Models;
 using Istatistik.Services;
 using System;
@@ -36,6 +36,10 @@ namespace Istatistik.Controllers
                 Response.StatusCode = 403;
                 return Json(new { success = false, message = ex.Message }, behavior);
             }
+            catch (Istatistik.Services.DuplicateRecordException ex)
+            {
+                return Json(new { success = false, message = ex.Message, duplicateId = ex.ExistingId }, behavior);
+            }
             catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException)
             {
                 return Json(new { success = false, message = ex.Message }, behavior);
@@ -68,6 +72,13 @@ namespace Istatistik.Controllers
         public ActionResult Save(string type, string payload)
         {
             return Run(s => s.Save(type, payload), false);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Get(string type, int id)
+        {
+            return Run(s => s.Get(type, id));
         }
 
         [HttpPost]
@@ -132,3 +143,5 @@ namespace Istatistik.Controllers
         }
     }
 }
+
+

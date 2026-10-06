@@ -1,188 +1,10 @@
-﻿﻿@{
-    ViewBag.Title = "Pasaport Bürosu - Veri Girişi";
-    string border = ViewBag.Border as string ?? "";
-}
 
-<div class="container-fluid py-4" id="ppApp" style="max-width: 1400px;">
-    @Html.AntiForgeryToken()
-
-    <!-- Üst Başlık & Büro Bilgisi -->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center pb-3 mb-4 border-bottom gap-2">
-        <div>
-            <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-primary bg-opacity-10 text-primary p-2 rounded-3 fs-5">
-                    <i class="bi bi-passport"></i>
-                </span>
-                <h3 class="mb-0 fw-bold text-dark">Pasaport Bürosu Veri Girişi</h3>
-            </div>
-            @if (!string.IsNullOrEmpty(border))
-            {
-                <div class="text-muted small mt-1 d-flex align-items-center gap-1">
-                    <i class="bi bi-geo-alt-fill text-danger"></i>
-                    <span>Bağlı Sınır Kapısı / Şube: <strong>@border</strong></span>
-                </div>
-            }
-        </div>
-        <div>
-            <a href="@Url.Action("Index", "Bureau")" class="btn btn-outline-secondary btn-sm px-3 shadow-sm rounded-pill">
-                <i class="bi bi-arrow-left me-1"></i> Büro Seçimine Dön
-            </a>
-        </div>
-    </div>
-
-    <!-- Bildirim Alanı -->
-    <div id="alertBox"></div>
-
-    <!-- Modül Sekmeleri ve Yeni Kayıt Butonu -->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
-        <ul class="nav nav-pills gap-2 bg-light p-2 rounded-3 border mb-0" id="ppTabs">
-            <li class="nav-item">
-                <button type="button" class="nav-link active px-3 py-2 fw-semibold" data-type="gunluk">
-                    <i class="bi bi-people-fill me-1"></i> Günlük Yolcu
-                </button>
-            </li>
-            <li class="nav-item">
-                <button type="button" class="nav-link px-3 py-2 fw-semibold" data-type="inad">
-                    <i class="bi bi-person-x-fill me-1"></i> İnad Yolcular
-                </button>
-            </li>
-            <li class="nav-item">
-                <button type="button" class="nav-link px-3 py-2 fw-semibold" data-type="tahdit">
-                    <i class="bi bi-shield-lock-fill me-1"></i> Tahdit Kayıtları
-                </button>
-            </li>
-        </ul>
-        <button type="button" class="btn btn-primary px-4 py-2 fw-semibold rounded-pill shadow-sm" id="btnNewRecord" data-bs-toggle="modal" data-bs-target="#recordModal">
-            <i class="bi bi-plus-lg me-1"></i> Yeni Kayıt Ekle
-        </button>
-    </div>
-
-    <!-- Kayıt Modal -->
-    <div class="modal fade" id="recordModal" tabindex="-1" aria-labelledby="recordModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg rounded-4">
-                <div class="modal-header bg-light border-bottom py-3 px-4">
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge bg-white text-primary border p-2 rounded-circle fs-6" id="formHeaderIcon">
-                            <i class="bi bi-pencil-square"></i>
-                        </span>
-                        <h5 class="modal-title fw-bold mb-0 text-dark" id="formTitle">Yeni Kayıt</h5>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <div class="row g-3" id="formFields"></div>
-                </div>
-                <div class="modal-footer bg-light border-top py-3 px-4 d-flex justify-content-between">
-                    <button type="button" class="btn btn-outline-secondary px-3 rounded-pill" id="resetBtn">
-                        <i class="bi bi-arrow-counterclockwise me-1"></i> Formu Temizle
-                    </button>
-                    <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-light px-4 rounded-pill" data-bs-dismiss="modal" id="cancelEditBtn">
-                            İptal
-                        </button>
-                        <button type="button" class="btn btn-success px-4 rounded-pill shadow-sm" id="saveBtn">
-                            <i class="bi bi-check-lg me-1"></i> Kaydet
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Arama ve Filtre Çubuğu -->
-    <div class="card border-0 shadow-sm rounded-4 mb-4">
-        <div class="card-body p-3">
-            <div class="row g-2 align-items-center">
-                <div class="col-md-2" id="wrapFilterYear">
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-white text-muted"><i class="bi bi-calendar3"></i></span>
-                        <select id="filterYear" class="form-select">
-                            <option value="">Yıl (Tümü)</option>
-                            <!-- Yıllar JavaScript ile doldurulacak -->
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-5" id="searchWrap">
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-white text-muted"><i class="bi bi-search"></i></span>
-                        <input type="text" id="filterSearch" class="form-control" placeholder="Ad, pasaport no, uyruk veya kod ile ara..." />
-                    </div>
-                </div>
-                <div class="col-md-auto ms-md-auto d-flex gap-2">
-                    <button type="button" class="btn btn-sm btn-primary px-3 rounded-pill shadow-sm" id="filterBtn">
-                        <i class="bi bi-funnel me-1"></i> Filtrele
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary px-3 rounded-pill" id="clearFilterBtn">
-                        <i class="bi bi-x-circle me-1"></i> Temizle
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Veri Tablosu Kartı -->
-    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" style="min-width: 900px;">
-                    <thead class="table-light text-secondary text-uppercase small" style="letter-spacing: 0.5px;">
-                        <tr id="listHead"></tr>
-                    </thead>
-                    <tbody id="listBody" class="border-top-0"></tbody>
-                </table>
-            </div>
-        </div>
-        <!-- Sayfalama (Pagination) Alanı -->
-        <div class="card-footer bg-white border-top py-3 px-3 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-            <span class="small text-muted" id="listInfo"></span>
-            <nav id="paginationContainer" aria-label="Tablo sayfalaması"></nav>
-        </div>
-    </div>
-</div>
-
-<style>
-    .nav-pills .nav-link {
-        color: #495057;
-        border-radius: 8px;
-        transition: all 0.2s ease-in-out;
-    }
-
-        .nav-pills .nav-link.active {
-            background-color: #0d6efd;
-            color: #fff;
-            box-shadow: 0 4px 10px rgba(13, 110, 253, 0.25);
+    (function () {
+        var recordModalEl = document.getElementById('recordModal');
+        if (recordModalEl) {
+            document.body.appendChild(recordModalEl);
         }
 
-    .table th {
-        font-weight: 600;
-        padding-top: 14px;
-        padding-bottom: 14px;
-    }
-
-    .table td {
-        padding-top: 12px;
-        padding-bottom: 12px;
-    }
-
-    .form-control:focus, .form-select:focus {
-        border-color: #86b7fe;
-        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
-    }
-
-    .code-tag {
-        font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-        letter-spacing: 0.5px;
-    }
-
-    .pagination {
-        margin-bottom: 0;
-    }
-</style>
-
-@section scripts {
-    <script>
-    (function () {
         var URLS = {
             list: '@Url.Action("List", "Passport")',
             save: '@Url.Action("Save", "Passport")',
@@ -307,8 +129,9 @@
             return input ? input.value : '';
         }
 
-        function showMsg(msg, ok) {
-            var box = $('alertBox');
+        function showMsg(msg, ok, inModal) {
+            var box = inModal ? $('modalAlertBox') : $('alertBox');
+            if (!box) box = $('alertBox');
             box.innerHTML = '';
 
             var d = document.createElement('div');
@@ -321,7 +144,7 @@
                 ' fs-5 me-2';
 
             var content = document.createElement('div');
-            content.textContent = msg == null ? '' : String(msg);
+            content.innerHTML = msg == null ? '' : String(msg);
 
             var close = document.createElement('button');
             close.type = 'button';
@@ -475,6 +298,31 @@
             return obj;
         }
 
+        window.editDuplicate = function(id) {
+            // Check if it's in the current rows
+            var row = rows.find(function(r) { return r.Id === id; });
+            if (row) {
+                fillForm(row);
+                var box = $('modalAlertBox');
+                if (box) box.innerHTML = ''; // clear error
+            } else {
+                // Try fetching it from server
+                post('@Url.Action("Get", "Passport")', { type: current, id: id })
+                    .then(function(r) {
+                        if (r.success && r.data) {
+                            fillForm(r.data);
+                            var box = $('modalAlertBox');
+                            if (box) box.innerHTML = ''; // clear error
+                        } else {
+                            showMsg('Kayıt bulunamadı.', false, true);
+                        }
+                    })
+                    .catch(function() {
+                        showMsg('Kayıt getirilirken hata oluştu.', false, true);
+                    });
+            }
+        };
+
         function save() {
             var cfg = TYPES[current];
 
@@ -484,14 +332,14 @@
                 var value = el ? String(el.value || '').trim() : '';
 
                 if (f.req && value === '') {
-                    showMsg(f.l + ' alanı zorunludur.', false);
+                    showMsg(f.l + ' alanı zorunludur.', false, true);
                     if (el) el.focus();
                     return;
                 }
                 if (f.t === 'int' && value !== '') {
                     var intValue = Number(value);
                     if (!Number.isInteger(intValue) || intValue < 0) {
-                        showMsg(f.l + ' alanına 0 veya daha büyük bir tam sayı giriniz.', false);
+                        showMsg(f.l + ' alanına 0 veya daha büyük bir tam sayı giriniz.', false, true);
                         el.focus();
                         return;
                     }
@@ -510,7 +358,15 @@
                 payload: JSON.stringify(payload)
             })
                 .then(function (r) {
-                    if (!r || r.success !== true) throw new Error((r && r.message) || 'Kayıt işlemi gerçekleştirilemedi.');
+                    if (!r || r.success !== true) {
+                        if (r && r.duplicateId) {
+                            var errMsg = (r.message || 'Kayıt zaten var.') + ' <button type="button" class="btn btn-sm btn-warning ms-3" onclick="editDuplicate(' + r.duplicateId + ')">Mevcut Kaydı Düzenle</button>';
+                            showMsg(errMsg, false, true);
+                        } else {
+                            throw new Error((r && r.message) || 'Kayıt işlemi gerçekleştirilemedi.');
+                        }
+                        return;
+                    }
                     showMsg(editingId ? 'Kayıt güncellendi.' : 'Kayıt başarıyla oluşturuldu.', true);
                     resetForm();
                     var modalElement = document.getElementById('recordModal');
@@ -519,7 +375,7 @@
                     load();
                 })
                 .catch(function (err) {
-                    showMsg(err && err.message ? err.message : 'Kayıt sırasında sunucu hatası oluştu.', false);
+                    showMsg(err && err.message ? err.message : 'Kayıt sırasında sunucu hatası oluştu.', false, true);
                 })
                 .then(function () {
                     btn.disabled = false;
@@ -742,5 +598,4 @@
         resetForm();
         load();
     })();
-    </script>
-}
+    

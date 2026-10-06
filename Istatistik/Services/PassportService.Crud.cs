@@ -1,4 +1,4 @@
-﻿using Istatistik.Models;
+using Istatistik.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -178,6 +178,49 @@ namespace Istatistik.Services
 
         #endregion
 
+        #region Tekil Kayıt (Get)
+
+        public object Get(string type, int id)
+        {
+            switch (Norm(type))
+            {
+                case "yolcuucak":
+                    var e1 = _db.YolcuUcakIstatistikleri.FirstOrDefault(x => x.Id == id && x.Border == _border);
+                    if (e1 == null) throw new ArgumentException("Kayıt bulunamadı.");
+                    return e1;
+
+                case "inad":
+                    var e2 = _db.InadYolcular.FirstOrDefault(x => x.Id == id && x.Border == _border);
+                    if (e2 == null) throw new ArgumentException("Kayıt bulunamadı.");
+                    return new { e2.Id, e2.SiraNo, Tarih = D(e2.Tarih), e2.AdSoyad, e2.Uyruk,
+                                 DogumTarihi = D(e2.DogumTarihi), GelisTarihi = D(e2.GelisTarihi), GidisTarihi = D(e2.GidisTarihi), 
+                                 e2.PasaportNo, e2.GeldigiUlke, e2.GittigiUlke, e2.HavayoluSirketi, e2.InadGerekcesi, e2.Aciklamalar };
+
+                case "tahdit":
+                    var e3 = _db.TahditKayitlari.FirstOrDefault(x => x.Id == id && x.Border == _border);
+                    if (e3 == null) throw new ArgumentException("Kayıt bulunamadı.");
+                    return new { e3.Id, Tarih = D(e3.Tarih), e3.AdSoyad, e3.Uyruk,
+                                 DogumTarihi = D(e3.DogumTarihi), e3.PasaportVeyaKimlikNo, e3.TahditKodu, e3.Neden };
+
+                case "gunluk":
+                    var e4 = _db.GunlukZamanSerisiYolcular.FirstOrDefault(x => x.Id == id && x.Border == _border);
+                    if (e4 == null) throw new ArgumentException("Kayıt bulunamadı.");
+                    return new { e4.Id, Tarih = D(e4.Tarih), e4.Yon, e4.HatTuru, e4.GunlukYolcuSayisi, e4.UcakSayisi };
+
+                case "haftalik":
+                    var e5 = _db.HaftalikOlayCizelgeleri.FirstOrDefault(x => x.Id == id && x.Border == _border);
+                    if (e5 == null) throw new ArgumentException("Kayıt bulunamadı.");
+                    return new { e5.Id, e5.TarihAraligi, BaslangicTarihi = D(e5.BaslangicTarihi), BitisTarihi = D(e5.BitisTarihi), e5.Havalimani,
+                                 e5.SorgulananSahisSayisi, e5.ArananSahisSayisi, e5.SahteBelgeSayisi, e5.InadEdilenSayisi,
+                                 e5.YazilanCezaMiktari, e5.TrafiktenMenSayisi };
+
+                default:
+                    throw new ArgumentException("Geçersiz veri tipi.");
+            }
+        }
+
+        #endregion
+
         #region Ekleme / Düzenleme
 
         public object Save(string type, string payload)
@@ -203,10 +246,10 @@ namespace Istatistik.Services
             Count(m.GelenUcak, "Gelen uçak");
             Count(m.GidenUcak, "Giden uçak");
 
-            var duplicate = _db.YolcuUcakIstatistikleri.Any(x =>
+            var duplicate = _db.YolcuUcakIstatistikleri.FirstOrDefault(x =>
                 x.Border == _border && x.Yil == m.Yil && x.Ay == m.Ay && x.HatTuru == m.HatTuru && x.Id != m.Id);
-            if (duplicate)
-                throw new InvalidOperationException("Bu yıl, ay ve hat türü için kayıt zaten var. Mevcut kaydı düzenleyin.");
+            if (duplicate != null)
+                throw new DuplicateRecordException("Bu yıl, ay ve hat türü için kayıt zaten var. Mevcut kaydı düzenleyin.", duplicate.Id);
 
             YolcuUcakIstatistik e;
             if (m.Id == 0)
@@ -314,10 +357,10 @@ namespace Istatistik.Services
             Count(m.UcakSayisi, "Uçak sayısı");
 
             var tarih = m.Tarih.Date;
-            var duplicate = _db.GunlukZamanSerisiYolcular.Any(x =>
+            var duplicate = _db.GunlukZamanSerisiYolcular.FirstOrDefault(x =>
                 x.Border == _border && x.Tarih == tarih && x.Yon == m.Yon && x.HatTuru == m.HatTuru && x.Id != m.Id);
-            if (duplicate)
-                throw new InvalidOperationException("Bu tarih, yön ve hat türü için kayıt zaten var. Mevcut kaydı düzenleyin.");
+            if (duplicate != null)
+                throw new DuplicateRecordException("Bu tarih, yön ve hat türü için kayıt zaten var. Mevcut kaydı düzenleyin.", duplicate.Id);
 
             GunlukZamanSerisiYolcu e;
             if (m.Id == 0)
