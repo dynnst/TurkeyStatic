@@ -1,4 +1,4 @@
-﻿﻿@{
+﻿@{
     ViewBag.Title = "Pasaport Bürosu - Veri Girişi";
     string border = ViewBag.Border as string ?? "";
 }
@@ -59,7 +59,7 @@
 
     <!-- Kayıt Modal -->
     <div class="modal fade" id="recordModal" tabindex="-1" aria-labelledby="recordModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content border-0 shadow-lg rounded-4">
                 <div class="modal-header bg-light border-bottom py-3 px-4">
                     <div class="d-flex align-items-center gap-2">
@@ -70,7 +70,7 @@
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
                 </div>
-                <div class="modal-body p-4">
+                <div class="modal-body p-4 bg-white">
                     <div class="row g-3" id="formFields"></div>
                 </div>
                 <div class="modal-footer bg-light border-top py-3 px-4 d-flex justify-content-between">
@@ -99,7 +99,6 @@
                         <span class="input-group-text bg-white text-muted"><i class="bi bi-calendar3"></i></span>
                         <select id="filterYear" class="form-select">
                             <option value="">Yıl (Tümü)</option>
-                            <!-- Yıllar JavaScript ile doldurulacak -->
                         </select>
                     </div>
                 </div>
@@ -165,11 +164,6 @@
         padding-bottom: 12px;
     }
 
-    .form-control:focus, .form-select:focus {
-        border-color: #86b7fe;
-        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
-    }
-
     .code-tag {
         font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         letter-spacing: 0.5px;
@@ -177,6 +171,34 @@
 
     .pagination {
         margin-bottom: 0;
+    }
+
+    /* Modern Form Elemanları (Modal İçi) Tasarım Özelleştirmeleri */
+    .form-floating > label {
+        color: #6c757d;
+        font-size: 0.9rem;
+        padding-left: 1rem;
+    }
+
+    .form-floating > .form-control,
+    .form-floating > .form-select {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+
+        .form-floating > .form-control:focus,
+        .form-floating > .form-select:focus {
+            background-color: #ffffff;
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+        }
+
+    .form-control.is-invalid {
+        background-image: none;
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.15);
     }
 </style>
 
@@ -203,15 +225,17 @@
             return String(v);
         };
 
+        // Form konfigürasyonları düzenlendi: section eklendi, grid (w) değerleri 12'ye oranlandı.
         var TYPES = {
             gunluk: {
                 title: 'Günlük Yolcu', search: false, year: true, icon: 'bi-people-fill',
                 fields: [
-                    { n: 'Tarih', l: 'Tarih', t: 'date', req: true, w: 3 },
-                    { n: 'Yon', l: 'Yön', t: 'select', opts: YON, w: 2 },
-                    { n: 'HatTuru', l: 'Hat Türü', t: 'select', opts: HAT, w: 2 },
-                    { n: 'GunlukYolcuSayisi', l: 'Günlük Yolcu Sayısı', t: 'int', req: true, w: 3, ph: '0' },
-                    { n: 'UcakSayisi', l: 'Uçak Sayısı', t: 'int', w: 2, ph: '0' }
+                    { n: 'Tarih', l: 'Tarih', t: 'date', req: true, w: 4, section: '<i class="bi bi-calendar-check me-2"></i>Periyot Bilgisi' },
+                    { n: 'Yon', l: 'Yön', t: 'select', opts: YON, w: 4 },
+                    { n: 'HatTuru', l: 'Hat Türü', t: 'select', opts: HAT, w: 4 },
+
+                    { n: 'GunlukYolcuSayisi', l: 'Günlük Yolcu Sayısı', t: 'int', req: true, w: 6, ph: '0', section: '<i class="bi bi-bar-chart-fill me-2"></i>İstatistikler' },
+                    { n: 'UcakSayisi', l: 'Uçak Sayısı', t: 'int', w: 6, ph: '0' }
                 ],
                 cols: [
                     ['Tarih', 'Tarih', fmtDate],
@@ -224,19 +248,28 @@
             inad: {
                 title: 'İnad Yolcular', search: true, year: true, icon: 'bi-person-x-fill',
                 fields: [
-                    { n: 'SiraNo', l: 'Sıra No', t: 'int', w: 2, ph: 'Örn: 1' },
-                    { n: 'Tarih', l: 'İşlem Tarihi', t: 'date', req: true, w: 2 },
-                    { n: 'AdSoyad', l: 'Adı Soyadı', t: 'text', req: true, max: 200, w: 4, ph: 'Yolcunun adı ve soyadı' },
-                    { n: 'Uyruk', l: 'Uyruk', t: 'text', max: 100, w: 2, ph: 'Örn: IRN, IRQ, DEU' },
-                    { n: 'DogumTarihi', l: 'Doğum Tarihi', t: 'date', w: 2 },
-                    { n: 'PasaportNo', l: 'Pasaport No', t: 'text', max: 50, w: 3, ph: 'Pasaport / Belge No' },
-                    { n: 'GelisTarihi', l: 'Geliş Tarihi', t: 'date', w: 3 },
+                    // Satır 1: Kayıt ve Kimlik
+                    { n: 'SiraNo', l: 'Sıra No', t: 'int', w: 3, ph: 'Örn: 1', section: '<i class="bi bi-card-heading me-2"></i>Kayıt ve Kimlik Bilgileri' },
+                    { n: 'Tarih', l: 'İşlem Tarihi', t: 'date', req: true, w: 4 },
+                    { n: 'Uyruk', l: 'Uyruk', t: 'text', max: 100, w: 5, ph: 'Örn: IRN, IRQ, DEU' },
+
+                    // Satır 2: Kişisel
+                    { n: 'AdSoyad', l: 'Adı Soyadı', t: 'text', req: true, max: 200, w: 5, ph: 'Yolcunun adı ve soyadı' },
+                    { n: 'PasaportNo', l: 'Pasaport No', t: 'text', max: 50, w: 4, ph: 'Pasaport / Belge No' },
+                    { n: 'DogumTarihi', l: 'Doğum Tarihi', t: 'date', w: 3 },
+
+                    // Satır 3: Seyahat
+                    { n: 'GelisTarihi', l: 'Geliş Tarihi', t: 'date', w: 3, section: '<i class="bi bi-airplane me-2"></i>Seyahat ve Uçuş Bilgileri' },
                     { n: 'GidisTarihi', l: 'Gidiş Tarihi', t: 'date', w: 3 },
-                    { n: 'HavayoluSirketi', l: 'Havayolu Şirketi', t: 'text', max: 200, w: 3, ph: 'Örn: THY, Pegasus' },
-                    { n: 'GeldigiUlke', l: 'Geldiği Ülke', t: 'text', max: 100, w: 3, ph: 'Ülke adı' },
-                    { n: 'GittigiUlke', l: 'Gittiği Ülke', t: 'text', max: 100, w: 3, ph: 'Gönderildiği ülke' },
-                    { n: 'InadGerekcesi', l: 'İnad Gerekçesi', t: 'text', max: 500, w: 6, ph: 'Gerekçe kodu veya detayı' },
-                    { n: 'Aciklamalar', l: 'Ek Açıklamalar', t: 'textarea', max: 1000, w: 12, ph: 'Varsa diğer notlar...' }
+                    { n: 'HavayoluSirketi', l: 'Havayolu Şirketi', t: 'text', max: 200, w: 6, ph: 'Örn: THY, Pegasus' },
+
+                    // Satır 4: Gerekçe ve Güzergah
+                    { n: 'GeldigiUlke', l: 'Geldiği Ülke', t: 'text', max: 100, w: 4, ph: 'Ülke adı', section: '<i class="bi bi-geo-alt me-2"></i>Güzergah ve Gerekçe' },
+                    { n: 'GittigiUlke', l: 'Gittiği Ülke', t: 'text', max: 100, w: 4, ph: 'Gönderildiği ülke' },
+                    { n: 'InadGerekcesi', l: 'İnad Gerekçesi', t: 'text', max: 500, w: 4, ph: 'Gerekçe kodu veya detayı' },
+
+                    // Satır 5: Notlar
+                    { n: 'Aciklamalar', l: 'Ek Açıklamalar', t: 'textarea', max: 1000, w: 12, ph: 'Varsa diğer notlar...', section: '<i class="bi bi-journal-text me-2"></i>Notlar' }
                 ],
                 cols: [
                     ['Sıra', 'SiraNo', function(v) { return '<span class="text-muted fw-semibold">#' + escapeHtml(v || '-') + '</span>'; }],
@@ -260,13 +293,18 @@
             tahdit: {
                 title: 'Tahdit Kayıtları', search: true, year: true, icon: 'bi-shield-lock-fill',
                 fields: [
-                    { n: 'Tarih', l: 'İşlem Tarihi', t: 'date', req: true, w: 3 },
-                    { n: 'AdSoyad', l: 'Adı Soyadı', t: 'text', req: true, max: 200, w: 4, ph: 'Kişi adı ve soyadı' },
-                    { n: 'Uyruk', l: 'Uyruk', t: 'text', max: 100, w: 2, ph: 'Örn: RUS, UKR' },
-                    { n: 'DogumTarihi', l: 'Doğum Tarihi', t: 'date', w: 3 },
+                    // Satır 1: Tahdit Kodu
+                    { n: 'Tarih', l: 'İşlem Tarihi', t: 'date', req: true, w: 4, section: '<i class="bi bi-shield-lock me-2"></i>Tahdit Detayları' },
+                    { n: 'TahditKodu', l: 'Tahdit Kodu', t: 'text', req: true, max: 20, w: 4, ph: 'Örn: V-84, C-101, G-87' },
+                    { n: 'Uyruk', l: 'Uyruk', t: 'text', max: 100, w: 4, ph: 'Örn: RUS, UKR' },
+
+                    // Satır 2: Kişi Bilgileri
+                    { n: 'AdSoyad', l: 'Adı Soyadı', t: 'text', req: true, max: 200, w: 5, ph: 'Kişi adı ve soyadı', section: '<i class="bi bi-person-badge me-2"></i>Kişi Bilgileri' },
                     { n: 'PasaportVeyaKimlikNo', l: 'Pasaport / Kimlik No', t: 'text', max: 100, w: 4, ph: 'Belge numarası' },
-                    { n: 'TahditKodu', l: 'Tahdit Kodu', t: 'text', req: true, max: 20, w: 3, ph: 'Örn: V-84, C-101, G-87' },
-                    { n: 'Neden', l: 'Tahdit Nedeni ve Açıklama', t: 'textarea', max: 500, w: 12, ph: 'Tahdit gerekçesi, mahkeme kararı veya ilgili şerh detayı...' }
+                    { n: 'DogumTarihi', l: 'Doğum Tarihi', t: 'date', w: 3 },
+
+                    // Satır 3: Neden
+                    { n: 'Neden', l: 'Tahdit Nedeni ve Açıklama', t: 'textarea', max: 500, w: 12, ph: 'Tahdit gerekçesi, mahkeme kararı veya ilgili şerh detayı...', section: '<i class="bi bi-justify-left me-2"></i>Gerekçe ve Karar Özeti' }
                 ],
                 cols: [
                     ['Tarih', 'Tarih', fmtDate],
@@ -287,9 +325,8 @@
         var editingId = 0;
         var rows = [];
 
-        // Sayfalama değişkenleri
         var currentPage = 1;
-        var pageSize = 15; // Sayfada gösterilecek kayıt sayısı
+        var pageSize = 15;
 
         function $(id) { return document.getElementById(id); }
 
@@ -347,10 +384,7 @@
         function post(url, params) {
             var body = new URLSearchParams();
             var csrf = token();
-
-            if (csrf) {
-                body.append('__RequestVerificationToken', csrf);
-            }
+            if (csrf) body.append('__RequestVerificationToken', csrf);
 
             Object.keys(params || {}).forEach(function (k) {
                 body.append(k, params[k] == null ? '' : params[k]);
@@ -367,19 +401,15 @@
             }).then(function (response) {
                 return response.text().then(function (text) {
                     var data = null;
-                    try {
-                        data = text ? JSON.parse(text) : null;
-                    } catch (e) {
-                        throw new Error('Sunucudan geçersiz bir yanıt alındı.');
-                    }
-                    if (!response.ok) {
-                        throw new Error((data && data.message) || 'Sunucu isteği işleyemedi. (HTTP ' + response.status + ')');
-                    }
+                    try { data = text ? JSON.parse(text) : null; }
+                    catch (e) { throw new Error('Sunucudan geçersiz bir yanıt alındı.'); }
+                    if (!response.ok) throw new Error((data && data.message) || 'Sunucu isteği işleyemedi. (HTTP ' + response.status + ')');
                     return data || { success: false, message: 'Sunucudan boş yanıt alındı.' };
                 });
             });
         }
 
+        // --- MODERNİZE EDİLMİŞ FORM OLUŞTURUCU (Bootstrap Floating Labels & Sections) ---
         function buildForm() {
             var cfg = TYPES[current];
             $('formTitle').textContent = (editingId ? 'Kaydı Düzenle: ' : 'Yeni Kayıt: ') + cfg.title;
@@ -389,18 +419,30 @@
 
             var wrap = $('formFields');
             wrap.innerHTML = '';
-            cfg.fields.forEach(function (f) {
-                var col = document.createElement('div');
-                col.className = 'col-md-' + (f.w || 3);
 
-                var lb = document.createElement('label');
-                lb.className = 'form-label small fw-semibold text-secondary mb-1';
-                lb.innerHTML = f.l + (f.req ? ' <span class="text-danger">*</span>' : '');
+            cfg.fields.forEach(function (f, idx) {
+
+                // Eğer alana ait bir bölüm başlığı (section) tanımlanmışsa ayırıcıyı çiz
+                if (f.section) {
+                    var secCol = document.createElement('div');
+                    // İlk elemansa üst boşluk bırakma, değilse boşluk bırak
+                    secCol.className = idx === 0 ? 'col-12 mb-0' : 'col-12 mt-4 mb-0';
+                    secCol.innerHTML = '<h6 class="text-secondary fw-semibold border-bottom pb-2 mb-0">' + f.section + '</h6>';
+                    wrap.appendChild(secCol);
+                }
+
+                // Sütun yapısı
+                var col = document.createElement('div');
+                col.className = 'col-12 col-md-' + (f.w || 12);
+
+                // Floating Label Sarmalayıcı
+                var floatWrap = document.createElement('div');
+                floatWrap.className = 'form-floating';
 
                 var el;
                 if (f.t === 'select') {
                     el = document.createElement('select');
-                    el.className = 'form-select form-select-sm';
+                    el.className = 'form-select';
                     Object.keys(f.opts).forEach(function (k) {
                         var o = document.createElement('option');
                         o.value = k;
@@ -409,22 +451,29 @@
                     });
                 } else if (f.t === 'textarea') {
                     el = document.createElement('textarea');
-                    el.className = 'form-control form-control-sm';
-                    el.rows = 2;
+                    el.className = 'form-control';
+                    el.style.height = '100px';
+                    el.placeholder = f.ph || f.l;
                 } else {
                     el = document.createElement('input');
-                    el.className = 'form-control form-control-sm';
+                    el.className = 'form-control';
                     el.type = (f.t === 'int' || f.t === 'dec') ? 'number' : (f.t === 'date' ? 'date' : 'text');
                     if (f.t === 'int') { el.min = '0'; el.step = '1'; }
                     if (f.t === 'dec') { el.min = '0'; el.step = '0.01'; }
+                    el.placeholder = f.ph || f.l;
                 }
 
-                if (f.ph) el.placeholder = f.ph;
                 if (f.max) el.maxLength = f.max;
                 el.id = 'f_' + f.n;
 
-                col.appendChild(lb);
-                col.appendChild(el);
+                // Etiket Tanımı
+                var lb = document.createElement('label');
+                lb.htmlFor = el.id;
+                lb.innerHTML = f.l + (f.req ? ' <span class="text-danger">*</span>' : '');
+
+                floatWrap.appendChild(el);
+                floatWrap.appendChild(lb);
+                col.appendChild(floatWrap);
                 wrap.appendChild(col);
             });
 
@@ -478,6 +527,11 @@
         function save() {
             var cfg = TYPES[current];
 
+            // Daha önceki hata görselliklerini temizle
+            document.querySelectorAll('.is-invalid').forEach(function (el) {
+                el.classList.remove('is-invalid');
+            });
+
             for (var i = 0; i < cfg.fields.length; i++) {
                 var f = cfg.fields[i];
                 var el = $('f_' + f.n);
@@ -485,14 +539,20 @@
 
                 if (f.req && value === '') {
                     showMsg(f.l + ' alanı zorunludur.', false);
-                    if (el) el.focus();
+                    if (el) {
+                        el.classList.add('is-invalid');
+                        el.focus();
+                    }
                     return;
                 }
                 if (f.t === 'int' && value !== '') {
                     var intValue = Number(value);
                     if (!Number.isInteger(intValue) || intValue < 0) {
                         showMsg(f.l + ' alanına 0 veya daha büyük bir tam sayı giriniz.', false);
-                        el.focus();
+                        if (el) {
+                            el.classList.add('is-invalid');
+                            el.focus();
+                        }
                         return;
                     }
                 }
@@ -550,12 +610,10 @@
             var totalPages = Math.ceil(totalRows / pageSize);
             var html = '<ul class="pagination pagination-sm mb-0 shadow-sm">';
 
-            // Önceki butonu
             html += '<li class="page-item ' + (currentPage === 1 ? 'disabled' : '') + '">';
             html += '<a class="page-link" href="#" data-page="' + (currentPage - 1) + '"><i class="bi bi-chevron-left"></i></a></li>';
 
             for (var i = 1; i <= totalPages; i++) {
-                // Sadece mevcut sayfanın etrafındaki sayfaları ve ilk/son sayfaları göster
                 if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
                     html += '<li class="page-item ' + (currentPage === i ? 'active' : '') + '">';
                     html += '<a class="page-link" href="#" data-page="' + i + '">' + i + '</a></li>';
@@ -564,7 +622,6 @@
                 }
             }
 
-            // Sonraki butonu
             html += '<li class="page-item ' + (currentPage === totalPages ? 'disabled' : '') + '">';
             html += '<a class="page-link" href="#" data-page="' + (currentPage + 1) + '"><i class="bi bi-chevron-right"></i></a></li>';
 
@@ -600,7 +657,6 @@
                 $('listInfo').innerHTML = '';
                 $('paginationContainer').innerHTML = '';
             } else {
-                // Sayfalama için satırları dilimle (Slice)
                 var totalPages = Math.ceil(rows.length / pageSize);
                 if (currentPage > totalPages) currentPage = totalPages;
                 if (currentPage < 1) currentPage = 1;
@@ -638,7 +694,6 @@
                     body.appendChild(tr);
                 });
 
-                // Bilgi ve Pagination Render
                 var endRow = Math.min(startIndex + pageSize, rows.length);
                 $('listInfo').innerHTML = '<i class="bi bi-info-circle me-1"></i> Toplam <strong>' + rows.length + '</strong> kayıttan <strong>' + (startIndex + 1) + '-' + endRow + '</strong> arası gösteriliyor.';
                 renderPagination(rows.length);
@@ -665,7 +720,7 @@
                     } else {
                         rows = r.data || [];
                     }
-                    currentPage = 1; // Yeni veri yüklendiğinde 1. sayfaya dön
+                    currentPage = 1;
                     render();
                 })
                 .catch(function () {
@@ -692,7 +747,6 @@
             load();
         });
 
-        // Sayfalama tıklama olayları
         $('paginationContainer').addEventListener('click', function(e) {
             e.preventDefault();
             var a = e.target.closest('a.page-link');
