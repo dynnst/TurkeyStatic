@@ -270,7 +270,11 @@ namespace Istatistik.Services
                         Label = g.Key.ToString("dd.MM.yyyy"),
                         Metrics = new Dictionary<string, decimal>
                         {
+                            ["GelenYolcu"]  = g.Where(x => x.Yon == Yon.Gelen).Sum(x => x.GunlukYolcuSayisi),
+                            ["GidenYolcu"]  = g.Where(x => x.Yon == Yon.Giden).Sum(x => x.GunlukYolcuSayisi),
                             ["ToplamYolcu"] = g.Sum(x => x.GunlukYolcuSayisi),
+                            ["GelenUcak"]   = g.Where(x => x.Yon == Yon.Gelen).Sum(x => x.UcakSayisi),
+                            ["GidenUcak"]   = g.Where(x => x.Yon == Yon.Giden).Sum(x => x.UcakSayisi),
                             ["ToplamUcak"]  = g.Sum(x => x.UcakSayisi)
                         }
                     })
@@ -288,7 +292,11 @@ namespace Istatistik.Services
                         Label = "Hafta: " + g.Key.ToString("dd.MM.yyyy"),
                         Metrics = new Dictionary<string, decimal>
                         {
+                            ["GelenYolcu"]  = g.Where(x => x.Yon == Yon.Gelen).Sum(x => x.GunlukYolcuSayisi),
+                            ["GidenYolcu"]  = g.Where(x => x.Yon == Yon.Giden).Sum(x => x.GunlukYolcuSayisi),
                             ["ToplamYolcu"] = g.Sum(x => x.GunlukYolcuSayisi),
+                            ["GelenUcak"]   = g.Where(x => x.Yon == Yon.Gelen).Sum(x => x.UcakSayisi),
+                            ["GidenUcak"]   = g.Where(x => x.Yon == Yon.Giden).Sum(x => x.UcakSayisi),
                             ["ToplamUcak"]  = g.Sum(x => x.UcakSayisi)
                         }
                     })
@@ -306,7 +314,11 @@ namespace Istatistik.Services
                         Label = g.Key.ToString("MMM yyyy", TrCulture),
                         Metrics = new Dictionary<string, decimal>
                         {
+                            ["GelenYolcu"]  = g.Where(x => x.Yon == Yon.Gelen).Sum(x => x.GunlukYolcuSayisi),
+                            ["GidenYolcu"]  = g.Where(x => x.Yon == Yon.Giden).Sum(x => x.GunlukYolcuSayisi),
                             ["ToplamYolcu"] = g.Sum(x => x.GunlukYolcuSayisi),
+                            ["GelenUcak"]   = g.Where(x => x.Yon == Yon.Gelen).Sum(x => x.UcakSayisi),
+                            ["GidenUcak"]   = g.Where(x => x.Yon == Yon.Giden).Sum(x => x.UcakSayisi),
                             ["ToplamUcak"]  = g.Sum(x => x.UcakSayisi)
                         }
                     })
@@ -324,7 +336,11 @@ namespace Istatistik.Services
                         Label = g.Key.ToString("yyyy"),
                         Metrics = new Dictionary<string, decimal>
                         {
+                            ["GelenYolcu"]  = g.Where(x => x.Yon == Yon.Gelen).Sum(x => x.GunlukYolcuSayisi),
+                            ["GidenYolcu"]  = g.Where(x => x.Yon == Yon.Giden).Sum(x => x.GunlukYolcuSayisi),
                             ["ToplamYolcu"] = g.Sum(x => x.GunlukYolcuSayisi),
+                            ["GelenUcak"]   = g.Where(x => x.Yon == Yon.Gelen).Sum(x => x.UcakSayisi),
+                            ["GidenUcak"]   = g.Where(x => x.Yon == Yon.Giden).Sum(x => x.UcakSayisi),
                             ["ToplamUcak"]  = g.Sum(x => x.UcakSayisi)
                         }
                     })
