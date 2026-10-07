@@ -169,9 +169,22 @@ namespace Istatistik.Services
             // Özet hesapla
             if (result.DataPoints.Any())
             {
-                result.Summary["Toplam"]   = result.DataPoints.Sum(p => p.Value);
-                result.Summary["Ortalama"] = Math.Round(result.DataPoints.Average(p => p.Value), 2);
-                result.Summary["Maksimum"] = result.DataPoints.Max(p => p.Value);
+                var first = result.DataPoints.First();
+                if (first.Metrics != null && first.Metrics.Count > 0)
+                {
+                    foreach (var m in first.Metrics.Keys)
+                    {
+                        result.Summary[m + " (Toplam)"]   = result.DataPoints.Sum(p => p.Metrics.ContainsKey(m) ? p.Metrics[m] : 0);
+                        result.Summary[m + " (Ortalama)"] = Math.Round(result.DataPoints.Average(p => p.Metrics.ContainsKey(m) ? p.Metrics[m] : 0), 2);
+                        result.Summary[m + " (Maksimum)"] = result.DataPoints.Max(p => p.Metrics.ContainsKey(m) ? p.Metrics[m] : 0);
+                    }
+                }
+                else
+                {
+                    result.Summary["Toplam"]   = result.DataPoints.Sum(p => p.Value);
+                    result.Summary["Ortalama"] = Math.Round(result.DataPoints.Average(p => p.Value), 2);
+                    result.Summary["Maksimum"] = result.DataPoints.Max(p => p.Value);
+                }
             }
 
             return result;
@@ -700,11 +713,27 @@ namespace Istatistik.Services
                 TotalRecords = totalRecords,
                 TotalPages   = totalPages,
                 Summary      = aggregated.Summary,
-                Rows = paged.Select(p => new Dictionary<string, object>
+                Rows = paged.Select(p => 
                 {
-                    { "Tarih",  p.Date.ToString("dd.MM.yyyy") },
-                    { "Etiket", p.Label },
-                    { "Değer",  p.Value }
+                    var dict = new Dictionary<string, object>
+                    {
+                        { "Tarih",  p.Date.ToString("dd.MM.yyyy") },
+                        { "Etiket", p.Label }
+                    };
+
+                    if (p.Metrics != null && p.Metrics.Count > 0)
+                    {
+                        foreach(var kvp in p.Metrics)
+                        {
+                            dict.Add(kvp.Key, kvp.Value);
+                        }
+                    }
+                    else
+                    {
+                        dict.Add("Değer", p.Value);
+                    }
+
+                    return dict;
                 }).ToList()
             };
 
