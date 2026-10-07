@@ -13,8 +13,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const oneMonthAgo = new Date(today);
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
-    const sd = document.getElementById('startDate'); if (sd) sd.valueAsDate = oneMonthAgo;
-    const ed = document.getElementById('endDate'); if (ed) ed.valueAsDate = today;
+    document.getElementById('startDate').valueAsDate = oneMonthAgo;
+    document.getElementById('endDate').valueAsDate = today;
 
     // Dönem 1 başlangıç: bir yıl önce, aynı ay/gün
     const p1Start = new Date(oneMonthAgo);
@@ -22,29 +22,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const p1End = new Date(today);
     p1End.setFullYear(p1End.getFullYear() - 1);
 
-    const p1s = document.getElementById('p1StartDate'); if(p1s) p1s.valueAsDate = p1Start;
-    const p1e = document.getElementById('p1EndDate'); if(p1e) p1e.valueAsDate = p1End;
+    document.getElementById('p1StartDate').valueAsDate = p1Start;
+    document.getElementById('p1EndDate').valueAsDate   = p1End;
 
     // Dönem 2: aynı ay/gün, bu yıl (bir yıl sonrası)
-    const p2s = document.getElementById('p2StartDate'); if(p2s) p2s.valueAsDate = oneMonthAgo;
-    const p2e = document.getElementById('p2EndDate'); if (p2e) p2e.valueAsDate = today;
+    document.getElementById('p2StartDate').valueAsDate = oneMonthAgo;
+    document.getElementById('p2EndDate').valueAsDate   = today;
 
     // Dönem 1 tarih değişince → Dönem 2'yi otomatik güncelle (aynı ay/gün, +1 yıl)
-    const p1StartInput = document.getElementById('p1StartDate');
-    if (p1StartInput) {
-        p1StartInput.addEventListener('change', function() {
-            syncPeriod2Date('p1StartDate', 'p2StartDate');
-        });
-        document.getElementById('p1EndDate').addEventListener('change', function() {
-            syncPeriod2Date('p1EndDate', 'p2EndDate');
-        });
-    }
+    document.getElementById('p1StartDate').addEventListener('change', function() {
+        syncPeriod2Date('p1StartDate', 'p2StartDate');
+    });
+    document.getElementById('p1EndDate').addEventListener('change', function() {
+        syncPeriod2Date('p1EndDate', 'p2EndDate');
+    });
     
     // Dönem tipi değişikliğinde özel gün sayısını göster/gizle
-    const ptSelect = document.getElementById('periodType'); if (ptSelect) ptSelect.addEventListener('change', function() {
+    document.getElementById('periodType').addEventListener('change', function() {
         const customContainer = document.getElementById('customPeriodContainer');
         const btnContainer = document.getElementById('btnFilterContainer');
-        if (!customContainer || !btnContainer) return;
         if (this.value === 'custom') {
             customContainer.style.display = 'block';
             btnContainer.classList.remove('col-md-3');
@@ -57,35 +53,22 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Sayfa açılışında durumu kontrol et
-    const pt = document.getElementById('periodType'); if(pt) pt.dispatchEvent(new Event('change'));
+    document.getElementById('periodType').dispatchEvent(new Event('change'));
     
     // Event listeners
-    const btnFilter = document.getElementById('btnFilter');
-    if (btnFilter) btnFilter.addEventListener('click', loadChartData);
-
-    const chartType = document.getElementById('chartType');
-    if (chartType) chartType.addEventListener('change', function() { ChartModule.changeType(this.value); });
-
-    const btnDownloadPng = document.getElementById('btnDownloadPng');
-    if (btnDownloadPng) btnDownloadPng.addEventListener('click', () => ChartModule.download('png'));
-
-    const btnDownloadJpeg = document.getElementById('btnDownloadJpeg');
-    if (btnDownloadJpeg) btnDownloadJpeg.addEventListener('click', () => ChartModule.download('jpeg'));
-
-    const pageSize = document.getElementById('pageSize');
-    if (pageSize) pageSize.addEventListener('change', function() {
+    document.getElementById('btnFilter').addEventListener('click', loadChartData);
+    document.getElementById('chartType').addEventListener('change', function() {
+        ChartModule.changeType(this.value);
+    });
+    document.getElementById('btnDownloadPng').addEventListener('click', () => ChartModule.download('png'));
+    document.getElementById('btnDownloadJpeg').addEventListener('click', () => ChartModule.download('jpeg'));
+    document.getElementById('pageSize').addEventListener('change', function() {
         TableModule.setPageSize(parseInt(this.value));
         loadTableData(1);
     });
-
-    const btnExportCsv = document.getElementById('btnExportCsv');
-    if (btnExportCsv) btnExportCsv.addEventListener('click', exportCsv);
-
-    const btnExportExcel = document.getElementById('btnExportExcel');
-    if (btnExportExcel) btnExportExcel.addEventListener('click', exportExcel);
-
-    const btnCompare = document.getElementById('btnCompare');
-    if (btnCompare) btnCompare.addEventListener('click', loadComparisonData);
+    document.getElementById('btnExportCsv').addEventListener('click', exportCsv);
+    document.getElementById('btnExportExcel').addEventListener('click', exportExcel);
+    document.getElementById('btnCompare').addEventListener('click', loadComparisonData);
     
     // Tab değişikliği
     document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
@@ -108,7 +91,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function loadChartData() {
-    if (!document.getElementById('startDate')) return;
     currentFilters.dataType = document.getElementById('dataType').value;
     currentFilters.startDate = document.getElementById('startDate').value;
     currentFilters.endDate = document.getElementById('endDate').value;
@@ -162,7 +144,6 @@ async function loadTableData(page = 1, sortBy = null, sortDesc = false) {
 window.loadTableData = loadTableData;
 
 async function loadComparisonData() {
-    if (!document.getElementById('p1StartDate')) return;
     const dataType = document.getElementById('dataType').value;
     const periodType = document.getElementById('periodType').value;
     const customDays = document.getElementById('customDays') ? document.getElementById('customDays').value : 10;
@@ -225,9 +206,3 @@ function syncPeriod2Date(sourceId, targetId) {
     // yyyy-MM-dd formatında ata
     document.getElementById(targetId).value = target.toISOString().substring(0, 10);
 }
-
-
-
-
-
-

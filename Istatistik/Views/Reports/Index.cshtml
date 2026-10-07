@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewBag.Title = "İstatistik Raporları";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
@@ -26,7 +26,8 @@
                             <label for="dataType" class="form-label">Veri Türü</label>
                             <select id="dataType" class="form-select">
     <optgroup label="Pasaport">
-        <option value="gunluk">Yolcu ve Uçak İstatistikleri</option>
+        <option value="yolcuucak">Yolcu/Uçak İstatistikleri</option>
+        <option value="gunluk">Günlük Zaman Serisi</option>
         <option value="inad">İNAD Kayıtları</option>
         <option value="tahdit">Tahdit Kayıtları</option>
         <option value="haftalik">Haftalık Olay Çizelgesi</option>
@@ -114,7 +115,11 @@
                 <i class="bi bi-table"></i> Tablo
             </button>
         </li>
-        <li class="nav-item ms-auto" role="presentation"><a href="/Reports/Compare" class="btn btn-outline-primary btn-sm mt-1 me-1"><i class="bi bi-arrow-left-right"></i> Karşılaştırma Sayfasına Git</a></li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="comparison-tab-btn" data-bs-toggle="tab" data-bs-target="#comparison-tab" type="button" role="tab">
+                <i class="bi bi-arrow-left-right"></i> Karşılaştırma
+            </button>
+        </li>
     </ul>
 
     <div class="tab-content" id="reportTabsContent">
@@ -172,7 +177,62 @@
             </div>
         </div>
 
-        
+        <!-- Karşılaştırma Sekmesi -->
+        <div class="tab-pane fade" id="comparison-tab" role="tabpanel">
+            <div class="card mt-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Dönem Karşılaştırma</h5>
+                    <a href="/Reports/Compare" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-arrows-fullscreen"></i> Tam Sayfada Aç
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="border rounded p-3 bg-light">
+                                <h6>Dönem 1</h6>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="form-label">Başlangıç</label>
+                                        <input type="date" id="p1StartDate" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">Bitiş</label>
+                                        <input type="date" id="p1EndDate" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border rounded p-3 bg-light">
+                                <h6>Dönem 2</h6>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="form-label">Başlangıç</label>
+                                        <input type="date" id="p2StartDate" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">Bitiş</label>
+                                        <input type="date" id="p2EndDate" class="form-control" max="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <button id="btnCompare" class="btn btn-primary w-100">
+                                <i class="bi bi-arrow-left-right"></i> Karşılaştır
+                            </button>
+                        </div>
+                    </div>
+                    <div id="comparisonResults" style="display: none;">
+                        <div id="comparisonTable"></div>
+                        <div class="mt-4" style="height: 400px;">
+                            <canvas id="comparisonChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -185,4 +245,3 @@
     <script src="~/Scripts/reports/comparison-module.js"></script>
     <script src="~/Scripts/reports/main.js"></script>
 }
-
