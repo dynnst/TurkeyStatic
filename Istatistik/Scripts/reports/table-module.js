@@ -33,7 +33,26 @@ const TableModule = (function() {
             html += '</tr>';
         });
         
-        html += '</tbody></table>';
+        html += '</tbody>';
+        
+        if (pagedResult.Summary) {
+            html += '<tfoot class="table-group-divider fw-bold bg-light"><tr>';
+            for (const key in firstRow) {
+                let sumKey = key + ' (Toplam)';
+                if (pagedResult.Summary[sumKey] !== undefined) {
+                    html += `<td>${formatNumber(pagedResult.Summary[sumKey])}</td>`;
+                } else if (pagedResult.Summary["Toplam"] !== undefined && key === "Değer") {
+                    html += `<td>${formatNumber(pagedResult.Summary["Toplam"])}</td>`;
+                } else if (key === 'Tarih') {
+                    html += `<td>GENEL TOPLAM</td>`;
+                } else {
+                    html += `<td></td>`;
+                }
+            }
+            html += '</tr></tfoot>';
+        }
+        
+        html += '</table>';
         container.innerHTML = html;
         
         attachSortHandlers(containerId);
@@ -94,10 +113,12 @@ const TableModule = (function() {
             return;
         }
         
-        let html = '<strong>Özet:</strong> ';
+        let html = '<div class="d-flex flex-wrap gap-3 mt-2">';
         for (const key in summary) {
-            html += `${key}: <strong>${formatNumber(summary[key])}</strong> &nbsp; `;
+            if (key.includes('(Toplam)') || key === 'Toplam') continue; // Toplamlar artık tablonun alt satırında
+            html += `<span class="badge bg-secondary px-3 py-2 fs-6 fw-normal">${key}: <strong class="fw-bold">${formatNumber(summary[key])}</strong></span>`;
         }
+        html += '</div>';
         container.innerHTML = html;
     }
     

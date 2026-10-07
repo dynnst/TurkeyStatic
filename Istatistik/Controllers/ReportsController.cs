@@ -62,6 +62,18 @@ namespace Istatistik.Controllers
             return View();
         }
 
+        [HttpGet]
+        public ActionResult Compare()
+        {
+            var user = CurrentUser.FromSession(Session);
+            if (user == null || string.IsNullOrWhiteSpace(user.Border))
+                return RedirectToAction("Login", "Account");
+
+            ViewBag.Border = user.Border;
+            ViewBag.UserRole = user.Role;
+            return View();
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult GetChartData(string dataType, DateTime startDate, DateTime endDate, string periodType)
