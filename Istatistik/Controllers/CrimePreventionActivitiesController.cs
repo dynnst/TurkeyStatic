@@ -1,6 +1,5 @@
-﻿using Istatistik.Models;
+using Istatistik.Models;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 
@@ -8,14 +7,17 @@ namespace Istatistik.Controllers
 {
     public class CrimePreventionActivitiesController : Controller
     {
-        private static List<CrimePreventionActivity> activities = new List<CrimePreventionActivity>();
+        private IstatistikContext _db = new IstatistikContext();
 
         [HttpGet]
         public ActionResult GetByDate(int unitId, DateTime date)
         {
             try
             {
-                var stats = activities.Where(a => a.UnitId == unitId && a.EntryDate.Date == date.Date).ToList();
+                var targetDate = date.Date;
+                var stats = _db.CrimePreventionActivities
+                    .Where(a => a.UnitId == unitId && a.EntryDate == targetDate)
+                    .ToList();
                 return Json(new { success = true, data = stats }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
@@ -34,9 +36,10 @@ namespace Istatistik.Controllers
                     return Json(new { success = false, message = "Geçersiz veri" });
                 }
 
-                model.ActivityId = activities.Count > 0 ? activities.Max(a => a.ActivityId) + 1 : 1;
                 model.CreatedDate = DateTime.Now;
-                activities.Add(model);
+                model.EntryDate = model.EntryDate.Date;
+                _db.CrimePreventionActivities.Add(model);
+                _db.SaveChanges();
 
                 return Json(new { success = true, message = "Başarıyla kaydedildi", data = model });
             }
@@ -52,9 +55,12 @@ namespace Istatistik.Controllers
             try
             {
                 int id = request.id;
-                var activity = activities.FirstOrDefault(a => a.ActivityId == id);
+                var activity = _db.CrimePreventionActivities.FirstOrDefault(a => a.ActivityId == id);
                 if (activity != null)
-                    activities.Remove(activity);
+                {
+                    _db.CrimePreventionActivities.Remove(activity);
+                    _db.SaveChanges();
+                }
 
                 return Json(new { success = true, message = "Başarıyla silindi" });
             }
@@ -62,6 +68,12 @@ namespace Istatistik.Controllers
             {
                 return Json(new { success = false, message = ex.Message });
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) _db.Dispose();
+            base.Dispose(disposing);
         }
     }
 }

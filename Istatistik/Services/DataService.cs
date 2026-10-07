@@ -101,6 +101,39 @@ namespace Istatistik.Services
             T e;
             if (id == 0)
             {
+                // Check if a record for this Border and Tarih already exists
+                var mDateProp = typeof(T).GetProperty("Tarih");
+                if (mDateProp != null)
+                {
+                    DateTime mDate = (DateTime)mDateProp.GetValue(m);
+                    var mDateDate = mDate.Date;
+
+                    var p = System.Linq.Expressions.Expression.Parameter(typeof(T), "x");
+
+                    var dateProp = System.Linq.Expressions.Expression.Property(p, "Tarih");
+                    var yProp = System.Linq.Expressions.Expression.Property(dateProp, "Year");
+                    var moProp = System.Linq.Expressions.Expression.Property(dateProp, "Month");
+                    var dProp = System.Linq.Expressions.Expression.Property(dateProp, "Day");
+
+                    var yEq = System.Linq.Expressions.Expression.Equal(yProp, System.Linq.Expressions.Expression.Constant(mDateDate.Year));
+                    var moEq = System.Linq.Expressions.Expression.Equal(moProp, System.Linq.Expressions.Expression.Constant(mDateDate.Month));
+                    var dEq = System.Linq.Expressions.Expression.Equal(dProp, System.Linq.Expressions.Expression.Constant(mDateDate.Day));
+
+                    var dateFilter = System.Linq.Expressions.Expression.AndAlso(yEq, System.Linq.Expressions.Expression.AndAlso(moEq, dEq));
+
+                    var pBorder = System.Linq.Expressions.Expression.Constant(_border);
+                    var borderFilter = System.Linq.Expressions.Expression.Equal(System.Linq.Expressions.Expression.Property(p, "Border"), pBorder);
+
+                    var lambda = System.Linq.Expressions.Expression.Lambda<Func<T, bool>>(System.Linq.Expressions.Expression.AndAlso(dateFilter, borderFilter), p);
+
+                    var existing = set.FirstOrDefault(lambda);
+                    if (existing != null)
+                    {
+                        var existId = typeof(T).GetProperty("Id").GetValue(existing);
+                        throw new DuplicateRecordException("Bu tarihe ait veri zaten girilmiş. Düzeltme ekranına yönlendiriliyorsunuz.", (int)existId);
+                    }
+                }
+
                 e = new T();
                 typeof(T).GetProperty("Border").SetValue(e, _border);
                 set.Add(e);

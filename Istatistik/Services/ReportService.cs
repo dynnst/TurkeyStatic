@@ -47,6 +47,11 @@ namespace Istatistik.Services
             }
             if (dt.StartsWith("cctv_"))
             {
+                // CCTV bürosu kodu var mı kontrol et (varsayalım CCTV ayrı bir büro koduna sahip veya BilgiTeknolojileri altında)
+                // BureauCodes içinde CCTV yoksa BilgiTeknolojileri sayabiliriz veya yeni bir kod ekleyebiliriz.
+                // Eğer ayrı büro değilse herkes görebilir mantığı kalabilir ama genelde Bilgi Teknolojileri bakar.
+                if (!_user.CanAccessBureau(BureauCodes.BilgiTeknolojileri)) // Varsa BureauCodes.Cctv eklenebilir
+                    throw new UnauthorizedAccessException("CCTV verileri için yetkiniz yok.");
                 return;
             }
             if (dt.StartsWith("trafik_"))
@@ -67,9 +72,36 @@ namespace Istatistik.Services
                     throw new UnauthorizedAccessException("YTS Sorgu verileri için yetkiniz yok.");
                 return;
             }
-
-            if (!_user.CanAccessBureau(BureauCodes.Pasaport))
-                throw new UnauthorizedAccessException("Pasaport bürosu verileri için yetkiniz yok.");
+            if (dt.StartsWith("idari_"))
+            {
+                if (!_user.CanAccessBureau(BureauCodes.Idari))
+                    throw new UnauthorizedAccessException("İdari büro verileri için yetkiniz yok.");
+                return;
+            }
+            if (dt.StartsWith("guvenlik_"))
+            {
+                if (!_user.CanAccessBureau(BureauCodes.Guvenlik))
+                    throw new UnauthorizedAccessException("Güvenlik hizmetleri verileri için yetkiniz yok.");
+                return;
+            }
+            if (dt.StartsWith("suconleme_"))
+            {
+                if (!_user.CanAccessBureau(BureauCodes.SucOnleme))
+                    throw new UnauthorizedAccessException("Suç önleme verileri için yetkiniz yok.");
+                return;
+            }
+            if (dt.StartsWith("seyahat_"))
+            {
+                if (!_user.CanAccessBureau(BureauCodes.SeyahatBelgeRisk))
+                    throw new UnauthorizedAccessException("Seyahat belgesi risk verileri için yetkiniz yok.");
+                return;
+            }
+            if (dt.StartsWith("pasaport_"))
+            {
+                if (!_user.CanAccessBureau(BureauCodes.Pasaport))
+                    throw new UnauthorizedAccessException("Pasaport bürosu verileri için yetkiniz yok.");
+                return;
+            }
         }
 
         #endregion
@@ -324,6 +356,34 @@ namespace Istatistik.Services
             {
                 var records = _db.GuvenlikHizmetleriIstatistikleri.Where(x => x.Border == _border && x.Tarih >= s && x.Tarih < e).ToList();
                 var prop = typeof(GuvenlikHizmetleriIstatistik).GetProperty(propName, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                if (prop != null)
+                {
+                    raw = records.Select(x => {
+                        var val = prop.GetValue(x);
+                        decimal num = 0;
+                        if (val != null) decimal.TryParse(val.ToString(), out num);
+                        return new RawDataPoint { Tarih = x.Tarih, Value = num };
+                    }).ToList();
+                }
+            }
+            else if (prefix == "suconleme")
+            {
+                var records = _db.SucOnlemeIcmallari.Where(x => x.Border == _border && x.Tarih >= s && x.Tarih < e).ToList();
+                var prop = typeof(SucOnlemeIcmal).GetProperty(propName, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                if (prop != null)
+                {
+                    raw = records.Select(x => {
+                        var val = prop.GetValue(x);
+                        decimal num = 0;
+                        if (val != null) decimal.TryParse(val.ToString(), out num);
+                        return new RawDataPoint { Tarih = x.Tarih, Value = num };
+                    }).ToList();
+                }
+            }
+            else if (prefix == "seyahat")
+            {
+                var records = _db.SeyahatBelgesiRiskAnalizleri.Where(x => x.Border == _border && x.Tarih >= s && x.Tarih < e).ToList();
+                var prop = typeof(SeyahatBelgesiRiskAnaliz).GetProperty(propName, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
                 if (prop != null)
                 {
                     raw = records.Select(x => {

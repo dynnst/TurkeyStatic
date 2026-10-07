@@ -60,6 +60,10 @@ namespace Istatistik.Controllers
                 var res = s.Save(type, payload);
                 return Json(new { success = true, data = res });
             }
+            catch (DuplicateRecordException ex)
+            {
+                return Json(new { success = false, message = ex.Message, duplicateId = ex.ExistingId });
+            }
             catch (Exception ex)
             {
                 return Json(new { success = false, message = ex.Message });

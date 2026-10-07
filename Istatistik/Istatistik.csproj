@@ -213,6 +213,7 @@
     <Compile Include="Models\CrimePreventionActivity.cs" />
     <Compile Include="Models\CrimeStatistic.cs" />
     <Compile Include="Models\EUser.cs" />
+
     <Compile Include="Models\PassportModels.cs" />
     <Compile Include="Models\BureauModels.cs" />
     <Compile Include="Models\QueryStatistic.cs" />
