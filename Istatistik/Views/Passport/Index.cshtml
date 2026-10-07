@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewBag.Title = "Pasaport Bürosu - Veri Girişi";
     string border = ViewBag.Border as string ?? "";
 }
@@ -38,7 +38,7 @@
         <ul class="nav nav-pills gap-2 bg-light p-2 rounded-3 border mb-0" id="ppTabs">
             <li class="nav-item">
                 <button type="button" class="nav-link active px-3 py-2 fw-semibold" data-type="gunluk">
-                    <i class="bi bi-people-fill me-1"></i> Günlük Yolcu
+                    <i class="bi bi-people-fill me-1"></i> Yolcu ve Uçak İstatistikleri
                 </button>
             </li>
             <li class="nav-item">
@@ -51,10 +51,56 @@
                     <i class="bi bi-shield-lock-fill me-1"></i> Tahdit Kayıtları
                 </button>
             </li>
-        </ul>
-        <button type="button" class="btn btn-primary px-4 py-2 fw-semibold rounded-pill shadow-sm" id="btnNewRecord" data-bs-toggle="modal" data-bs-target="#recordModal">
-            <i class="bi bi-plus-lg me-1"></i> Yeni Kayıt Ekle
-        </button>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-success px-4 py-2 fw-semibold rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#importModal">
+                <i class="bi bi-file-earmark-arrow-up me-1"></i> İçe Aktar (Excel/CSV)
+            </button>
+            <button type="button" class="btn btn-primary px-4 py-2 fw-semibold rounded-pill shadow-sm" id="btnNewRecord" data-bs-toggle="modal" data-bs-target="#recordModal">
+                <i class="bi bi-plus-lg me-1"></i> Yeni Kayıt Ekle
+            </button>
+        </div>
+    </div>
+
+    <!-- İçe Aktarma (Import) Modal -->
+    <div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header bg-light border-bottom py-3 px-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-white text-success border p-2 rounded-circle fs-6">
+                            <i class="bi bi-upload"></i>
+                        </span>
+                        <h5 class="modal-title fw-bold mb-0 text-dark">Dosyadan Veri Aktar</h5>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                </div>
+                <div class="modal-body p-4 bg-white">
+                    <div id="importAlertBox"></div>
+                    <form id="importForm">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Aktarılacak Veri Türü</label>
+                            <select class="form-select" id="importType" required>
+                                <option value="gunluk">Yolcu ve Uçak İstatistikleri (Günlük - CSV)</option>
+                                <option value="inad">İNAD Yolcular (JSON)</option>
+                                <option value="tahdit">Tahdit Kayıtları (JSON)</option>
+                                <option value="haftalik">Haftalık Olay Çizelgesi (JSON)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Dosya Seçiniz</label>
+                            <input class="form-control" type="file" id="importFile" required>
+                            <div class="form-text mt-2"><i class="bi bi-info-circle me-1"></i> Seçtiğiniz veri türüne uygun formatta dosya yüklediğinizden emin olun.</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer bg-light border-top py-3 px-4">
+                    <button type="button" class="btn btn-light px-4 rounded-pill" data-bs-dismiss="modal">İptal</button>
+                    <button type="button" class="btn btn-success px-4 rounded-pill shadow-sm" id="btnUploadFile">
+                        <i class="bi bi-cloud-upload me-1"></i> Dosyayı Yükle
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Kayıt Modal -->
@@ -209,7 +255,8 @@
         var URLS = {
             list: '@Url.Action("List", "Passport")',
             save: '@Url.Action("Save", "Passport")',
-            del: '@Url.Action("Delete", "Passport")'
+            del: '@Url.Action("Delete", "Passport")',
+            import: '@Url.Action("Import", "Passport")'
         };
 
         var HAT = { 0: 'İç Hat', 1: 'Dış Hat' };
@@ -247,7 +294,7 @@
         // Form konfigürasyonları düzenlendi: section eklendi, grid (w) değerleri 12'ye oranlandı.
         var TYPES = {
             gunluk: {
-                title: 'Günlük Yolcu', search: false, year: true, icon: 'bi-people-fill',
+                title: 'Yolcu ve Uçak İstatistikleri', search: false, year: true, icon: 'bi-people-fill',
                 fields: [
                     { n: 'Tarih', l: 'Tarih', t: 'date', req: true, w: 4, section: '<i class="bi bi-calendar-check me-2"></i>Periyot Bilgisi' },
                     { n: 'Yon', l: 'Yön', t: 'select', opts: YON, w: 4 },
@@ -869,6 +916,63 @@
 
         var btnNewRecord = $('btnNewRecord');
         if (btnNewRecord) btnNewRecord.onclick = resetForm;
+
+        // Dosya Yükleme (İçe Aktarma) Mantığı
+        var btnUploadFile = $('btnUploadFile');
+        if (btnUploadFile) {
+            btnUploadFile.onclick = function() {
+                var fileInput = $('importFile');
+                var typeSelect = $('importType');
+                
+                if (!fileInput.files || fileInput.files.length === 0) {
+                    showMsg('Lütfen yüklenecek bir dosya seçin.', false, true); // inModal = true (if we pass to showMsg, wait, showMsg modal is modalAlertBox)
+                    var importAlert = $('importAlertBox');
+                    if(importAlert) importAlert.innerHTML = '<div class="alert alert-danger shadow-sm"><i class="bi bi-exclamation-triangle-fill me-2"></i>Lütfen bir dosya seçin.</div>';
+                    return;
+                }
+
+                var formData = new FormData();
+                formData.append('type', typeSelect.value);
+                formData.append('file', fileInput.files[0]);
+                
+                var csrf = token();
+                if (csrf) formData.append('__RequestVerificationToken', csrf);
+
+                var oldHtml = btnUploadFile.innerHTML;
+                btnUploadFile.disabled = true;
+                btnUploadFile.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Yükleniyor...';
+
+                fetch(URLS.import, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(function (response) {
+                    return response.json();
+                })
+                .then(function (r) {
+                    if (r.success) {
+                        var importedCount = (r.data && r.data.count !== undefined) ? r.data.count : '?';
+                        showMsg('Dosya başarıyla içe aktarıldı. Aktarılan kayıt sayısı: ' + importedCount, true);
+                        var importModal = bootstrap.Modal.getInstance($('importModal'));
+                        if (importModal) importModal.hide();
+                        
+                        fileInput.value = ''; // Seçili dosyayı temizle
+                        load(); // Tabloyu yenile
+                    } else {
+                        var importAlert = $('importAlertBox');
+                        if(importAlert) importAlert.innerHTML = '<div class="alert alert-danger shadow-sm"><i class="bi bi-exclamation-triangle-fill me-2"></i>' + (r.message || 'Yükleme başarısız oldu.') + '</div>';
+                    }
+                })
+                .catch(function (err) {
+                    var importAlert = $('importAlertBox');
+                    if(importAlert) importAlert.innerHTML = '<div class="alert alert-danger shadow-sm"><i class="bi bi-exclamation-triangle-fill me-2"></i>Sunucu hatası oluştu. Lütfen dosya formatınızı kontrol edin.</div>';
+                })
+                .finally(function () {
+                    btnUploadFile.disabled = false;
+                    btnUploadFile.innerHTML = oldHtml;
+                });
+            };
+        }
 
         $('filterBtn').onclick = load;
         $('clearFilterBtn').onclick = function () {

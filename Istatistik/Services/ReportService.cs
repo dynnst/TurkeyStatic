@@ -235,7 +235,7 @@ namespace Istatistik.Services
 
         #endregion
 
-        #region Günlük Zaman Serisi
+        #region Günlük Zaman Serisi (Yolcu ve Uçak Birlikte)
 
         private List<AggregatedDataPoint> AggregateGunluk(DateTime start, DateTime end, PeriodType periodType)
         {
@@ -244,11 +244,80 @@ namespace Istatistik.Services
 
             var raw = _db.GunlukZamanSerisiYolcular
                 .Where(x => x.Border == _border && x.Tarih >= s && x.Tarih <= e)
-                .ToList()
-                .Select(x => new RawDataPoint { Tarih = x.Tarih, Value = x.GunlukYolcuSayisi })
                 .ToList();
 
-            return AggregateByPeriod(raw, periodType);
+            if (periodType == PeriodType.Daily)
+            {
+                return raw
+                    .GroupBy(x => x.Tarih.Date)
+                    .Select(g => new AggregatedDataPoint
+                    {
+                        Date  = g.Key,
+                        Value = g.Sum(x => x.GunlukYolcuSayisi), // Grafiğin ana çizgisi Yolcu olacak
+                        Label = g.Key.ToString("dd.MM.yyyy"),
+                        Metrics = new Dictionary<string, decimal>
+                        {
+                            ["ToplamYolcu"] = g.Sum(x => x.GunlukYolcuSayisi),
+                            ["ToplamUcak"]  = g.Sum(x => x.UcakSayisi)
+                        }
+                    })
+                    .OrderBy(x => x.Date)
+                    .ToList();
+            }
+            else if (periodType == PeriodType.Weekly)
+            {
+                return raw
+                    .GroupBy(x => GetWeekStartDate(x.Tarih))
+                    .Select(g => new AggregatedDataPoint
+                    {
+                        Date  = g.Key,
+                        Value = g.Sum(x => x.GunlukYolcuSayisi),
+                        Label = "Hafta: " + g.Key.ToString("dd.MM.yyyy"),
+                        Metrics = new Dictionary<string, decimal>
+                        {
+                            ["ToplamYolcu"] = g.Sum(x => x.GunlukYolcuSayisi),
+                            ["ToplamUcak"]  = g.Sum(x => x.UcakSayisi)
+                        }
+                    })
+                    .OrderBy(x => x.Date)
+                    .ToList();
+            }
+            else if (periodType == PeriodType.Monthly)
+            {
+                return raw
+                    .GroupBy(x => new DateTime(x.Tarih.Year, x.Tarih.Month, 1))
+                    .Select(g => new AggregatedDataPoint
+                    {
+                        Date  = g.Key,
+                        Value = g.Sum(x => x.GunlukYolcuSayisi),
+                        Label = g.Key.ToString("MMM yyyy", TrCulture),
+                        Metrics = new Dictionary<string, decimal>
+                        {
+                            ["ToplamYolcu"] = g.Sum(x => x.GunlukYolcuSayisi),
+                            ["ToplamUcak"]  = g.Sum(x => x.UcakSayisi)
+                        }
+                    })
+                    .OrderBy(x => x.Date)
+                    .ToList();
+            }
+            else // Yearly
+            {
+                return raw
+                    .GroupBy(x => new DateTime(x.Tarih.Year, 1, 1))
+                    .Select(g => new AggregatedDataPoint
+                    {
+                        Date  = g.Key,
+                        Value = g.Sum(x => x.GunlukYolcuSayisi),
+                        Label = g.Key.ToString("yyyy"),
+                        Metrics = new Dictionary<string, decimal>
+                        {
+                            ["ToplamYolcu"] = g.Sum(x => x.GunlukYolcuSayisi),
+                            ["ToplamUcak"]  = g.Sum(x => x.UcakSayisi)
+                        }
+                    })
+                    .OrderBy(x => x.Date)
+                    .ToList();
+            }
         }
 
         #endregion
