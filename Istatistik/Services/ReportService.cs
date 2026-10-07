@@ -566,10 +566,12 @@ namespace Istatistik.Services
                 Period2Summary = period2.Summary
             };
 
-            // Summary anahtarlarına göre fark metrikleri
-            foreach (var key in period1.Summary.Keys)
+            // Summary anahtarlarına göre fark metrikleri (her iki dönemdeki tüm anahtarlar)
+            var allKeys = period1.Summary.Keys.Union(period2.Summary.Keys).Distinct();
+
+            foreach (var key in allKeys)
             {
-                var p1Val = period1.Summary[key];
+                var p1Val = period1.Summary.ContainsKey(key) ? period1.Summary[key] : 0m;
                 var p2Val = period2.Summary.ContainsKey(key) ? period2.Summary[key] : 0m;
                 var diff  = p2Val - p1Val;
 
