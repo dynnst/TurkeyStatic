@@ -270,12 +270,17 @@ namespace Istatistik.Services
                         Label = g.Key.ToString("dd.MM.yyyy"),
                         Metrics = new Dictionary<string, decimal>
                         {
-                            ["GelenYolcu"]  = g.Where(x => x.Yon == Yon.Gelen).Sum(x => x.GunlukYolcuSayisi),
-                            ["GidenYolcu"]  = g.Where(x => x.Yon == Yon.Giden).Sum(x => x.GunlukYolcuSayisi),
-                            ["ToplamYolcu"] = g.Sum(x => x.GunlukYolcuSayisi),
-                            ["GelenUcak"]   = g.Where(x => x.Yon == Yon.Gelen).Sum(x => x.UcakSayisi),
-                            ["GidenUcak"]   = g.Where(x => x.Yon == Yon.Giden).Sum(x => x.UcakSayisi),
-                            ["ToplamUcak"]  = g.Sum(x => x.UcakSayisi)
+                            ["İç Hat Gelen Yolcu"]  = g.Where(x => x.Yon == Yon.Gelen && x.HatTuru == HatTuru.IcHat).Sum(x => x.GunlukYolcuSayisi),
+                            ["Dış Hat Gelen Yolcu"] = g.Where(x => x.Yon == Yon.Gelen && x.HatTuru == HatTuru.DisHat).Sum(x => x.GunlukYolcuSayisi),
+                            ["İç Hat Giden Yolcu"]  = g.Where(x => x.Yon == Yon.Giden && x.HatTuru == HatTuru.IcHat).Sum(x => x.GunlukYolcuSayisi),
+                            ["Dış Hat Giden Yolcu"] = g.Where(x => x.Yon == Yon.Giden && x.HatTuru == HatTuru.DisHat).Sum(x => x.GunlukYolcuSayisi),
+                            ["Toplam Yolcu"]        = g.Sum(x => x.GunlukYolcuSayisi),
+                            
+                            ["İç Hat Gelen Uçak"]   = g.Where(x => x.Yon == Yon.Gelen && x.HatTuru == HatTuru.IcHat).Sum(x => x.UcakSayisi),
+                            ["Dış Hat Gelen Uçak"]  = g.Where(x => x.Yon == Yon.Gelen && x.HatTuru == HatTuru.DisHat).Sum(x => x.UcakSayisi),
+                            ["İç Hat Giden Uçak"]   = g.Where(x => x.Yon == Yon.Giden && x.HatTuru == HatTuru.IcHat).Sum(x => x.UcakSayisi),
+                            ["Dış Hat Giden Uçak"]  = g.Where(x => x.Yon == Yon.Giden && x.HatTuru == HatTuru.DisHat).Sum(x => x.UcakSayisi),
+                            ["Toplam Uçak"]         = g.Sum(x => x.UcakSayisi)
                         }
                     })
                     .OrderBy(x => x.Date)
@@ -292,12 +297,17 @@ namespace Istatistik.Services
                         Label = "Hafta: " + g.Key.ToString("dd.MM.yyyy"),
                         Metrics = new Dictionary<string, decimal>
                         {
-                            ["GelenYolcu"]  = g.Where(x => x.Yon == Yon.Gelen).Sum(x => x.GunlukYolcuSayisi),
-                            ["GidenYolcu"]  = g.Where(x => x.Yon == Yon.Giden).Sum(x => x.GunlukYolcuSayisi),
-                            ["ToplamYolcu"] = g.Sum(x => x.GunlukYolcuSayisi),
-                            ["GelenUcak"]   = g.Where(x => x.Yon == Yon.Gelen).Sum(x => x.UcakSayisi),
-                            ["GidenUcak"]   = g.Where(x => x.Yon == Yon.Giden).Sum(x => x.UcakSayisi),
-                            ["ToplamUcak"]  = g.Sum(x => x.UcakSayisi)
+                            ["İç Hat Gelen Yolcu"]  = g.Where(x => x.Yon == Yon.Gelen && x.HatTuru == HatTuru.IcHat).Sum(x => x.GunlukYolcuSayisi),
+                            ["Dış Hat Gelen Yolcu"] = g.Where(x => x.Yon == Yon.Gelen && x.HatTuru == HatTuru.DisHat).Sum(x => x.GunlukYolcuSayisi),
+                            ["İç Hat Giden Yolcu"]  = g.Where(x => x.Yon == Yon.Giden && x.HatTuru == HatTuru.IcHat).Sum(x => x.GunlukYolcuSayisi),
+                            ["Dış Hat Giden Yolcu"] = g.Where(x => x.Yon == Yon.Giden && x.HatTuru == HatTuru.DisHat).Sum(x => x.GunlukYolcuSayisi),
+                            ["Toplam Yolcu"]        = g.Sum(x => x.GunlukYolcuSayisi),
+                            
+                            ["İç Hat Gelen Uçak"]   = g.Where(x => x.Yon == Yon.Gelen && x.HatTuru == HatTuru.IcHat).Sum(x => x.UcakSayisi),
+                            ["Dış Hat Gelen Uçak"]  = g.Where(x => x.Yon == Yon.Gelen && x.HatTuru == HatTuru.DisHat).Sum(x => x.UcakSayisi),
+                            ["İç Hat Giden Uçak"]   = g.Where(x => x.Yon == Yon.Giden && x.HatTuru == HatTuru.IcHat).Sum(x => x.UcakSayisi),
+                            ["Dış Hat Giden Uçak"]  = g.Where(x => x.Yon == Yon.Giden && x.HatTuru == HatTuru.DisHat).Sum(x => x.UcakSayisi),
+                            ["Toplam Uçak"]         = g.Sum(x => x.UcakSayisi)
                         }
                     })
                     .OrderBy(x => x.Date)
@@ -314,12 +324,17 @@ namespace Istatistik.Services
                         Label = g.Key.ToString("MMM yyyy", TrCulture),
                         Metrics = new Dictionary<string, decimal>
                         {
-                            ["GelenYolcu"]  = g.Where(x => x.Yon == Yon.Gelen).Sum(x => x.GunlukYolcuSayisi),
-                            ["GidenYolcu"]  = g.Where(x => x.Yon == Yon.Giden).Sum(x => x.GunlukYolcuSayisi),
-                            ["ToplamYolcu"] = g.Sum(x => x.GunlukYolcuSayisi),
-                            ["GelenUcak"]   = g.Where(x => x.Yon == Yon.Gelen).Sum(x => x.UcakSayisi),
-                            ["GidenUcak"]   = g.Where(x => x.Yon == Yon.Giden).Sum(x => x.UcakSayisi),
-                            ["ToplamUcak"]  = g.Sum(x => x.UcakSayisi)
+                            ["İç Hat Gelen Yolcu"]  = g.Where(x => x.Yon == Yon.Gelen && x.HatTuru == HatTuru.IcHat).Sum(x => x.GunlukYolcuSayisi),
+                            ["Dış Hat Gelen Yolcu"] = g.Where(x => x.Yon == Yon.Gelen && x.HatTuru == HatTuru.DisHat).Sum(x => x.GunlukYolcuSayisi),
+                            ["İç Hat Giden Yolcu"]  = g.Where(x => x.Yon == Yon.Giden && x.HatTuru == HatTuru.IcHat).Sum(x => x.GunlukYolcuSayisi),
+                            ["Dış Hat Giden Yolcu"] = g.Where(x => x.Yon == Yon.Giden && x.HatTuru == HatTuru.DisHat).Sum(x => x.GunlukYolcuSayisi),
+                            ["Toplam Yolcu"]        = g.Sum(x => x.GunlukYolcuSayisi),
+                            
+                            ["İç Hat Gelen Uçak"]   = g.Where(x => x.Yon == Yon.Gelen && x.HatTuru == HatTuru.IcHat).Sum(x => x.UcakSayisi),
+                            ["Dış Hat Gelen Uçak"]  = g.Where(x => x.Yon == Yon.Gelen && x.HatTuru == HatTuru.DisHat).Sum(x => x.UcakSayisi),
+                            ["İç Hat Giden Uçak"]   = g.Where(x => x.Yon == Yon.Giden && x.HatTuru == HatTuru.IcHat).Sum(x => x.UcakSayisi),
+                            ["Dış Hat Giden Uçak"]  = g.Where(x => x.Yon == Yon.Giden && x.HatTuru == HatTuru.DisHat).Sum(x => x.UcakSayisi),
+                            ["Toplam Uçak"]         = g.Sum(x => x.UcakSayisi)
                         }
                     })
                     .OrderBy(x => x.Date)
@@ -336,12 +351,17 @@ namespace Istatistik.Services
                         Label = g.Key.ToString("yyyy"),
                         Metrics = new Dictionary<string, decimal>
                         {
-                            ["GelenYolcu"]  = g.Where(x => x.Yon == Yon.Gelen).Sum(x => x.GunlukYolcuSayisi),
-                            ["GidenYolcu"]  = g.Where(x => x.Yon == Yon.Giden).Sum(x => x.GunlukYolcuSayisi),
-                            ["ToplamYolcu"] = g.Sum(x => x.GunlukYolcuSayisi),
-                            ["GelenUcak"]   = g.Where(x => x.Yon == Yon.Gelen).Sum(x => x.UcakSayisi),
-                            ["GidenUcak"]   = g.Where(x => x.Yon == Yon.Giden).Sum(x => x.UcakSayisi),
-                            ["ToplamUcak"]  = g.Sum(x => x.UcakSayisi)
+                            ["İç Hat Gelen Yolcu"]  = g.Where(x => x.Yon == Yon.Gelen && x.HatTuru == HatTuru.IcHat).Sum(x => x.GunlukYolcuSayisi),
+                            ["Dış Hat Gelen Yolcu"] = g.Where(x => x.Yon == Yon.Gelen && x.HatTuru == HatTuru.DisHat).Sum(x => x.GunlukYolcuSayisi),
+                            ["İç Hat Giden Yolcu"]  = g.Where(x => x.Yon == Yon.Giden && x.HatTuru == HatTuru.IcHat).Sum(x => x.GunlukYolcuSayisi),
+                            ["Dış Hat Giden Yolcu"] = g.Where(x => x.Yon == Yon.Giden && x.HatTuru == HatTuru.DisHat).Sum(x => x.GunlukYolcuSayisi),
+                            ["Toplam Yolcu"]        = g.Sum(x => x.GunlukYolcuSayisi),
+                            
+                            ["İç Hat Gelen Uçak"]   = g.Where(x => x.Yon == Yon.Gelen && x.HatTuru == HatTuru.IcHat).Sum(x => x.UcakSayisi),
+                            ["Dış Hat Gelen Uçak"]  = g.Where(x => x.Yon == Yon.Gelen && x.HatTuru == HatTuru.DisHat).Sum(x => x.UcakSayisi),
+                            ["İç Hat Giden Uçak"]   = g.Where(x => x.Yon == Yon.Giden && x.HatTuru == HatTuru.IcHat).Sum(x => x.UcakSayisi),
+                            ["Dış Hat Giden Uçak"]  = g.Where(x => x.Yon == Yon.Giden && x.HatTuru == HatTuru.DisHat).Sum(x => x.UcakSayisi),
+                            ["Toplam Uçak"]         = g.Sum(x => x.UcakSayisi)
                         }
                     })
                     .OrderBy(x => x.Date)
