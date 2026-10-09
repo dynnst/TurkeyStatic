@@ -4,6 +4,13 @@ namespace Istatistik.Models
 {
     public class IstatistikContext : DbContext
     {
+        static IstatistikContext()
+        {
+            // Şema Code First Migrations ile yönetilir; CreateDatabaseIfNotExists
+            // model özetini __MigrationHistory ile karşılaştırıp aksi halde çökertmesin.
+            Database.SetInitializer<IstatistikContext>(null);
+        }
+
         // ConnectionString adını varsayılan olarak projenin adı olan IstatistikContext alacaktır.
         // Web.config dosyanızdaki connectionString adı ile eşleşmesi gerekir.
         public IstatistikContext() : base("name=IstatistikContext")

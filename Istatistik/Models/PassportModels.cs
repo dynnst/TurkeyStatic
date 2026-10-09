@@ -16,6 +16,12 @@ namespace Istatistik.Models
         Giden = 1
     }
 
+    public enum TahditIslemTuru
+    {
+        Ekleme = 0,
+        Kaldirma = 1
+    }
+
     public class YolcuUcakIstatistik : IBorderEntity
     {
         [Key]
@@ -119,6 +125,9 @@ namespace Istatistik.Models
 
         [StringLength(20)]
         public string TahditKodu { get; set; }
+
+        [Index]
+        public TahditIslemTuru IslemTuru { get; set; }
 
         [StringLength(500)]
         public string Neden { get; set; }

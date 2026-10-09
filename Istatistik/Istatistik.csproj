@@ -207,6 +207,10 @@
     <Compile Include="Migrations\202610061306584_SunumGuncellemeleri.Designer.cs">
       <DependentUpon>202610061306584_SunumGuncellemeleri.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202610091606000_AddTahditIslemTuru.cs" />
+    <Compile Include="Migrations\202610091606000_AddTahditIslemTuru.Designer.cs">
+      <DependentUpon>202610091606000_AddTahditIslemTuru.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AuditLog.cs" />
     <Compile Include="Models\Authorization.cs" />
@@ -458,6 +462,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202610061306584_SunumGuncellemeleri.resx">
       <DependentUpon>202610061306584_SunumGuncellemeleri.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202610091606000_AddTahditIslemTuru.resx">
+      <DependentUpon>202610091606000_AddTahditIslemTuru.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

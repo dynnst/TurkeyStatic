@@ -1,4 +1,4 @@
-@{
+﻿@{
     ViewBag.Title = "Pasaport Bürosu - Veri Girişi";
     string border = ViewBag.Border as string ?? "";
 }
@@ -261,6 +261,7 @@
 
         var HAT = { 0: 'İç Hat', 1: 'Dış Hat' };
         var YON = { 0: 'Gelen', 1: 'Giden' };
+        var TAHDIR_ISLEM = { 0: 'Ekleme', 1: 'Kaldırma' };
 
         var COUNTRIES = ["ABD", "Afganistan", "Almanya", "Andorra", "Angola", "Antigua ve Barbuda", "Arjantin", "Arnavutluk", "Avustralya", "Avusturya", "Azerbaycan", "Bahamalar", "Bahreyn", "Bangladeş", "Barbados", "Belçika", "Belize", "Benin", "Beyaz Rusya", "Bhutan", "Birleşik Arap Emirlikleri", "Birleşik Krallık", "Bolivya", "Bosna Hersek", "Botsvana", "Brezilya", "Brunei", "Bulgaristan", "Burkina Faso", "Burundi", "Cezayir", "Cibuti", "Çad", "Çekya", "Çin", "Danimarka", "Dominik Cumhuriyeti", "Dominika", "Ekvador", "Ekvator Ginesi", "El Salvador", "Endonezya", "Eritre", "Ermenistan", "Estonya", "Esvatini", "Etiyopya", "Fas", "Fiji", "Fildişi Sahili", "Filipinler", "Filistin", "Finlandiya", "Fransa", "Gabon", "Gambiya", "Gana", "Gine", "Gine-Bissau", "Grenada", "Guatemala", "Guyana", "Güney Afrika", "Güney Kore", "Güney Sudan", "Gürcistan", "Haiti", "Hırvatistan", "Hindistan", "Hollanda", "Honduras", "Irak", "İran", "İrlanda", "İspanya", "İsrail", "İsveç", "İsviçre", "İtalya", "İzlanda", "Jamaika", "Japonya", "Kamboçya", "Kamerun", "Kanada", "Karadağ", "Katar", "Kazakistan", "Kenya", "Kıbrıs", "Kırgızistan", "Kiribati", "Kolombiya", "Komorlar", "Kongo", "Kosta Rika", "Kuveyt", "Kuzey Kore", "Kuzey Makedonya", "Küba", "Laos", "Lesotho", "Letonya", "Liberya", "Libya", "Liechtenstein", "Litvanya", "Lübnan", "Lüksemburg", "Macaristan", "Madagaskar", "Malavi", "Maldivler", "Malezya", "Mali", "Malta", "Marshall Adaları", "Mauritius", "Meksika", "Mısır", "Mikronezya", "Moğolistan", "Moldova", "Monako", "Moritanya", "Mozambik", "Myanmar", "Namibya", "Nauru", "Nepal", "Nikaragua", "Nijer", "Nijerya", "Norveç", "Orta Afrika Cumhuriyeti", "Özbekistan", "Pakistan", "Palau", "Panama", "Papua Yeni Gine", "Paraguay", "Peru", "Polonya", "Portekiz", "Romanya", "Ruanda", "Rusya", "Saint Kitts ve Nevis", "Saint Lucia", "Saint Vincent ve Grenadinler", "Samoa", "San Marino", "Sao Tome ve Principe", "Senegal", "Seyşeller", "Sırbistan", "Sierra Leone", "Singapur", "Slovakya", "Slovenya", "Solomon Adaları", "Somali", "Sri Lanka", "Sudan", "Surinam", "Suriye", "Suudi Arabistan", "Şili", "Tacikistan", "Tanzanya", "Tayland", "Togo", "Tonga", "Trinidad ve Tobago", "Tunus", "Tuvalu", "Türkiye", "Türkmenistan", "Uganda", "Ukrayna", "Umman", "Uruguay", "Ürdün", "Vanuatu", "Vatikan", "Venezuela", "Vietnam", "Yemen", "Yeni Zelanda", "Yeşil Burun Adaları", "Yunanistan", "Zambiya", "Zimbabve"];
         var INAD_REASONS = [
@@ -359,10 +360,11 @@
             tahdit: {
                 title: 'Tahdit Kayıtları', search: true, year: true, icon: 'bi-shield-lock-fill',
                 fields: [
-                    // Satır 1: Tahdit Kodu
-                    { n: 'Tarih', l: 'İşlem Tarihi', t: 'date', req: true, w: 4, section: '<i class="bi bi-shield-lock me-2"></i>Tahdit Detayları' },
-                    { n: 'TahditKodu', l: 'Tahdit Kodu', t: 'text', list: 'tahditKoduList', req: true, max: 20, w: 4, ph: 'Örn: V-84, C-101, G-87' },
-                    { n: 'Uyruk', l: 'Uyruk', t: 'select_str', opts: COUNTRIES, w: 4 },
+                    // Satır 1: Tahdit Kodu ve işlem türü
+                    { n: 'Tarih', l: 'İşlem Tarihi', t: 'date', req: true, w: 3, section: '<i class="bi bi-shield-lock me-2"></i>Tahdit Detayları' },
+                    { n: 'IslemTuru', l: 'Ekleme / Kaldırma', t: 'select', opts: TAHDIR_ISLEM, req: true, w: 3 },
+                    { n: 'TahditKodu', l: 'Tahdit Kodu', t: 'text', list: 'tahditKoduList', req: true, max: 20, w: 3, ph: 'Örn: V-84, C-101, G-87' },
+                    { n: 'Uyruk', l: 'Uyruk', t: 'select_str', opts: COUNTRIES, w: 3 },
 
                     // Satır 2: Kişi Bilgileri
                     { n: 'AdSoyad', l: 'Adı Soyadı', t: 'text', req: true, max: 200, w: 5, ph: 'Kişi adı ve soyadı', section: '<i class="bi bi-person-badge me-2"></i>Kişi Bilgileri' },
@@ -377,6 +379,11 @@
                     ['Adı Soyadı', 'AdSoyad', function(v) { return '<span class="fw-bold text-dark"><i class="bi bi-shield-shaded me-1 text-danger"></i>' + escapeHtml(v || '-') + '</span>'; }],
                     ['Uyruk', 'Uyruk', function(v) { return v ? '<span class="badge bg-light text-dark border">' + escapeHtml(v) + '</span>' : '-'; }],
                     ['Pasaport / Kimlik No', 'PasaportVeyaKimlikNo', function(v) { return v ? '<span class="badge bg-light text-secondary border code-tag">' + escapeHtml(v) + '</span>' : '-'; }],
+                    ['İşlem', 'IslemTuru', function(v) {
+                        var ekleme = String(v) === '0' || v === 0;
+                        return '<span class="badge ' + (ekleme ? 'bg-success' : 'bg-warning text-dark') + ' px-2 py-1">' +
+                            (TAHDIR_ISLEM[v] || '-') + '</span>';
+                    }],
                     ['Tahdit Kodu', 'TahditKodu', function(v) {
                         return '<span class="badge bg-danger text-white px-2 py-1 shadow-sm"><i class="bi bi-exclamation-triangle-fill me-1"></i>' + escapeHtml(v || '-') + '</span>';
                     }],

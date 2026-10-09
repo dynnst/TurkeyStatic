@@ -142,7 +142,8 @@ namespace Istatistik.Services
                             .Select(x => (object)new
                             {
                                 x.Id, Tarih = D(x.Tarih), x.AdSoyad, x.Uyruk,
-                                DogumTarihi = D(x.DogumTarihi), x.PasaportVeyaKimlikNo, x.TahditKodu, x.Neden
+                                DogumTarihi = D(x.DogumTarihi), x.PasaportVeyaKimlikNo, x.TahditKodu,
+                                IslemTuru = (int)x.IslemTuru, x.Neden
                             }).ToList();
                     }
 
@@ -200,7 +201,8 @@ namespace Istatistik.Services
                     var e3 = _db.TahditKayitlari.FirstOrDefault(x => x.Id == id && x.Border == _border);
                     if (e3 == null) throw new ArgumentException("Kayıt bulunamadı.");
                     return new { e3.Id, Tarih = D(e3.Tarih), e3.AdSoyad, e3.Uyruk,
-                                 DogumTarihi = D(e3.DogumTarihi), e3.PasaportVeyaKimlikNo, e3.TahditKodu, e3.Neden };
+                                 DogumTarihi = D(e3.DogumTarihi), e3.PasaportVeyaKimlikNo, e3.TahditKodu,
+                                 IslemTuru = (int)e3.IslemTuru, e3.Neden };
 
                 case "gunluk":
                     var e4 = _db.GunlukZamanSerisiYolcular.FirstOrDefault(x => x.Id == id && x.Border == _border);
@@ -322,6 +324,8 @@ namespace Istatistik.Services
             RequireDate(m.Tarih, "Tarih");
             if (S(m.AdSoyad) == null) throw new ArgumentException("Ad soyad gereklidir.");
             if (S(m.TahditKodu) == null) throw new ArgumentException("Tahdit kodu gereklidir.");
+            if (!Enum.IsDefined(typeof(TahditIslemTuru), m.IslemTuru))
+                throw new ArgumentException("İşlem türü Ekleme veya Kaldırma olmalıdır.");
 
             TahditKayit e;
             if (m.Id == 0)
@@ -341,6 +345,7 @@ namespace Istatistik.Services
             e.DogumTarihi = BirthDate(m.DogumTarihi);
             e.PasaportVeyaKimlikNo = S(m.PasaportVeyaKimlikNo);
             e.TahditKodu = S(m.TahditKodu).ToUpper(new CultureInfo("tr-TR"));
+            e.IslemTuru = m.IslemTuru;
             e.Neden = S(m.Neden);
 
             Validate(e);
