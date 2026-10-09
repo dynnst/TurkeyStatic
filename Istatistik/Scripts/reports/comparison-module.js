@@ -141,18 +141,29 @@ const ComparisonModule = (function() {
         var p1Label = formatDateRange(comparisonData.Period1Start, comparisonData.Period1End);
         var p2Label = formatDateRange(comparisonData.Period2Start, comparisonData.Period2End);
 
-        var maxLen = Math.max(
-            comparisonData.Period1Data.length,
-            comparisonData.Period2Data.length
-        );
-        var labels = [];
-        for (var i = 0; i < maxLen; i++) {
-            if (i < comparisonData.Period1Data.length) {
-                labels.push(comparisonData.Period1Data[i].Label ||
-                            formatDateTR(comparisonData.Period1Data[i].Date));
-            } else {
-                labels.push(comparisonData.Period2Data[i].Label ||
-                            formatDateTR(comparisonData.Period2Data[i].Date));
+        var diffs = comparisonData.Differences || [];
+        var labels = diffs.map(function(d) { return d.MetricName; });
+        var p1Values = diffs.map(function(d) { return d.Period1Value; });
+        var p2Values = diffs.map(function(d) { return d.Period2Value; });
+
+        if (labels.length === 0) {
+            var maxLen = Math.max(
+                (comparisonData.Period1Data || []).length,
+                (comparisonData.Period2Data || []).length
+            );
+            for (var i = 0; i < maxLen; i++) {
+                if (comparisonData.Period1Data && i < comparisonData.Period1Data.length) {
+                    labels.push(comparisonData.Period1Data[i].Label ||
+                                formatDateTR(comparisonData.Period1Data[i].Date));
+                    p1Values.push(comparisonData.Period1Data[i].Value);
+                    p2Values.push(comparisonData.Period2Data && i < comparisonData.Period2Data.length
+                        ? comparisonData.Period2Data[i].Value : 0);
+                } else if (comparisonData.Period2Data && i < comparisonData.Period2Data.length) {
+                    labels.push(comparisonData.Period2Data[i].Label ||
+                                formatDateTR(comparisonData.Period2Data[i].Date));
+                    p1Values.push(0);
+                    p2Values.push(comparisonData.Period2Data[i].Value);
+                }
             }
         }
 
@@ -164,14 +175,14 @@ const ComparisonModule = (function() {
                 datasets: [
                     {
                         label: p1Label,
-                        data: comparisonData.Period1Data.map(function(d) { return d.Value; }),
+                        data: p1Values,
                         backgroundColor: 'rgba(13, 110, 253, 0.6)',
                         borderColor: 'rgba(13, 110, 253, 1)',
                         borderWidth: 1
                     },
                     {
                         label: p2Label,
-                        data: comparisonData.Period2Data.map(function(d) { return d.Value; }),
+                        data: p2Values,
                         backgroundColor: 'rgba(25, 135, 84, 0.6)',
                         borderColor: 'rgba(25, 135, 84, 1)',
                         borderWidth: 1
@@ -196,6 +207,39 @@ const ComparisonModule = (function() {
         });
     }
 
+    // ── Grafik İndirme ───────────────────────────────────────────────────────
+
+    function getBase64Image(format = 'png') {
+        if (!comparisonChartInstance) return '';
+        var canvas = comparisonChartInstance.canvas;
+        if (!canvas) return '';
+
+        if (format === 'jpeg' || format === 'jpg') {
+            var tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+            var tempCtx = tempCanvas.getContext('2d');
+            tempCtx.fillStyle = '#ffffff';
+            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            tempCtx.drawImage(canvas, 0, 0);
+            return tempCanvas.toDataURL('image/jpeg', 0.95);
+        }
+
+        return comparisonChartInstance.toBase64Image('image/png', 1.0);
+    }
+
+    function downloadChart(format = 'png') {
+        if (!comparisonChartInstance) return;
+        var dataUrl = getBase64Image(format);
+        if (!dataUrl) return;
+
+        var ext = format === 'jpeg' ? 'jpg' : 'png';
+        var link = document.createElement('a');
+        link.download = 'karsilastirma-grafik-' + Date.now() + '.' + ext;
+        link.href = dataUrl;
+        link.click();
+    }
+
     // ── Trend Yardımcıları ──────────────────────────────────────────────────
 
     function getTrendIcon(trend) {
@@ -212,6 +256,9 @@ const ComparisonModule = (function() {
 
     return {
         renderTable: renderComparisonTable,
-        renderChart: renderComparisonChart
+        renderChart: renderComparisonChart,
+        downloadChart: downloadChart,
+        getBase64Image: getBase64Image,
+        getInstance: function() { return comparisonChartInstance; }
     };
 })();

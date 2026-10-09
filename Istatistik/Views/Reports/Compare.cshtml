@@ -1,45 +1,80 @@
-﻿@{
+@{
     ViewBag.Title = "Dönem Karşılaştırma";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold mb-0"><i class="bi bi-arrow-left-right text-primary me-2"></i>Dönem Karşılaştırma</h2>
+        <div>
+            <h2 class="fw-bold mb-0"><i class="bi bi-arrow-left-right text-primary me-2"></i>Dönem Karşılaştırma</h2>
+            <p class="text-muted mb-0">Havalimanı: <strong>@ViewBag.Border</strong></p>
+        </div>
         <a href="/Reports/Index" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i> Raporlara Dön
         </a>
+    </div>
+
+    @Html.AntiForgeryToken()
+
+    <!-- Hata Container -->
+    <div id="error-container"></div>
+
+    <!-- Loading Spinner -->
+    <div id="loader" class="text-center my-4" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Yükleniyor...</span>
+        </div>
+        <p class="mt-2 text-muted">Karşılaştırma verileri hesaplanıyor...</p>
     </div>
 
     <!-- Filtreler -->
     <div class="card shadow-sm mb-4 border-0">
         <div class="card-body">
             <div class="row g-3 align-items-end">
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <label for="dataType" class="form-label fw-semibold">Veri Türü</label>
                     <select id="dataType" class="form-select">
                         <optgroup label="Pasaport">
-                            <option value="gunluk">Yolcu ve Uçak İstatistikleri</option>
+                            <option value="yolcuucak">Yolcu/Uçak İstatistikleri</option>
+                            <option value="gunluk">Günlük Zaman Serisi</option>
                             <option value="inad">İNAD Kayıtları</option>
                             <option value="tahdit">Tahdit Kayıtları</option>
                             <option value="haftalik">Haftalık Olay Çizelgesi</option>
                         </optgroup>
                         <optgroup label="Bilgi Teknolojileri">
                             <option value="bilgitek_KameraKaydiIncelemesi">Kamera Kaydı İncelemesi</option>
-                            <option value="cctv_KameraArizasi">Kamera Arızası</option>
+                            <option value="bilgitek_PtsAracAraniyor">PTS Araç Aranıyor</option>
+                            <option value="bilgitek_PtsAracCalinti">PTS Araç Çalıntı</option>
+                            <option value="bilgitek_PtsPlakaCalinti">PTS Plaka Çalıntı</option>
+                            <option value="bilgitek_PtsPlakaKayip">PTS Plaka Kayıp</option>
+                            <option value="bilgitek_TahditBakilanSorunluYolcu">Tahdit Bakılan Sorunlu Yolcu</option>
+                            <option value="bilgitek_YurdaGirisCikisBelgeTalebi">Giriş/Çıkış Belge Talebi</option>
+                            <option value="bilgitek_TahditEkleme">Tahdit Ekleme</option>
+                            <option value="bilgitek_TahditKaldirma">Tahdit Kaldırma</option>
                         </optgroup>
-                        <optgroup label="İdari Büro">
-                            <option value="idari_GelenEvrak">Gelen Evrak</option>
-                            <option value="idari_GidenEvrak">Giden Evrak</option>
+                        <optgroup label="CCTV">
+                            <option value="cctv_IpSabit">IP Sabit Kamera</option>
+                            <option value="cctv_IpHareketli">IP Hareketli Kamera</option>
+                            <option value="cctv_AnalogSabit">Analog Sabit Kamera</option>
+                            <option value="cctv_AnalogHareketli">Analog Hareketli Kamera</option>
                         </optgroup>
-                        <optgroup label="Suç Önleme / Asayiş">
-                            <option value="suconleme_ArananSahis">Aranan Şahıs Yakalaması</option>
-                            <option value="gbtuyap_SorgulananSahis">Sorgulanan Şahıs (GBT/UYAP)</option>
+                        <optgroup label="Trafik">
+                            <option value="trafik_KontrolEdilenAracSayisi">Kontrol Edilen Araç</option>
+                            <option value="trafik_CezaYazilanSurucuSayisi">Ceza Yazılan Sürücü</option>
+                            <option value="trafik_TrafiktenMenEdilenAracSayisi">Trafikten Men Edilen Araç</option>
+                            <option value="trafik_GeciciGeriAlinanSurucuBelgesi">Geri Alınan Sürücü Belgesi</option>
+                        </optgroup>
+                        <optgroup label="GBT / UYAP">
+                            <option value="gbtuyap_SorgulananKisiSayisi">Sorgulanan Kişi</option>
+                            <option value="gbtuyap_YakalananKisiSayisi">Yakalanan Kişi</option>
+                        </optgroup>
+                        <optgroup label="YTS Sorgu">
+                            <option value="ytssorgu_GunlukSorguSayisi">Günlük Sorgu Sayısı</option>
                         </optgroup>
                     </select>
                 </div>
-                <div class="col-md-4">
-                    <label for="periodType" class="form-label fw-semibold">Periyot (Gruplama)</label>
+                <div class="col-md-6">
+                    <label for="periodType" class="form-label fw-semibold">Dönem Tipi</label>
                     <select id="periodType" class="form-select">
                         <option value="daily">Günlük</option>
                         <option value="weekly">Haftalık</option>
@@ -92,11 +127,24 @@
             </div>
 
             <div id="comparisonResults" style="display: none;">
-                <hr class="my-5" />
-                <h4 class="mb-4">Karşılaştırma Sonuçları</h4>
+                <hr class="my-4" />
+                <h4 class="mb-3">Karşılaştırma Sonuçları</h4>
                 <div id="comparisonTable" class="table-responsive"></div>
-                <div class="mt-5" style="height: 500px;">
-                    <canvas id="comparisonChart"></canvas>
+                <div class="card mt-4 border-0 shadow-sm">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 fw-bold">Karşılaştırma Grafiği</h6>
+                        <div class="btn-group btn-group-sm">
+                            <button id="btnDownloadCompJpeg" class="btn btn-outline-secondary">
+                                <i class="bi bi-file-image"></i> JPEG
+                            </button>
+                            <button id="btnDownloadCompPng" class="btn btn-outline-secondary">
+                                <i class="bi bi-file-image"></i> PNG
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body" style="height: 450px;">
+                        <canvas id="comparisonChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -107,6 +155,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="~/Scripts/reports/helpers.js"></script>
     <script src="~/Scripts/reports/api-client.js"></script>
+    <script src="~/Scripts/reports/chart-module.js"></script>
+    <script src="~/Scripts/reports/table-module.js"></script>
     <script src="~/Scripts/reports/comparison-module.js"></script>
     <script src="~/Scripts/reports/main.js"></script>
 }

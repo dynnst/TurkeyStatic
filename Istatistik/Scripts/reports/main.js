@@ -1,123 +1,234 @@
-// Main.js - Orchestration
+// Main.js - Raporlama ve Görselleştirme Orkestrasyonu
+
 let currentFilters = {
     dataType: 'yolcuucak',
     startDate: '',
     endDate: '',
-    periodType: 'monthly',
-    customDays: 10
+    periodType: 'monthly'
 };
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Varsayılan tarihleri ayarla
+document.addEventListener('DOMContentLoaded', function () {
+    initFiltersAndDates();
+    bindEventListeners();
+
+    // Index sayfasındaysak ilk grafik yüklemesini başlat
+    const isIndexPage = !!document.getElementById('startDate');
+    if (isIndexPage) {
+        loadChartData();
+    }
+});
+
+// ── Başlangıç Değerleri ve Tarih Ayarları ─────────────────────────────────────
+
+function initFiltersAndDates() {
     const today = new Date();
     const oneMonthAgo = new Date(today);
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
-    document.getElementById('startDate').valueAsDate = oneMonthAgo;
-    document.getElementById('endDate').valueAsDate = today;
+    const startDateInput = document.getElementById('startDate');
+    const endDateInput = document.getElementById('endDate');
+    const dataTypeSelect = document.getElementById('dataType');
+    const periodTypeSelect = document.getElementById('periodType');
 
-    // Dönem 1 başlangıç: bir yıl önce, aynı ay/gün
+    // Kaydedilmiş filtreleri geri yükle (Requirement 9.5)
+    const saved = getSavedFilters();
+    if (saved && startDateInput && endDateInput) {
+        if (saved.startDate) startDateInput.value = saved.startDate;
+        if (saved.endDate) endDateInput.value = saved.endDate;
+        if (saved.dataType && dataTypeSelect) dataTypeSelect.value = saved.dataType;
+        if (saved.periodType && periodTypeSelect) periodTypeSelect.value = saved.periodType;
+    } else {
+        if (startDateInput) startDateInput.valueAsDate = oneMonthAgo;
+        if (endDateInput) endDateInput.valueAsDate = today;
+    }
+
+    // Karşılaştırma Dönem 1 (Baz Dönem: 1 yıl önce)
     const p1Start = new Date(oneMonthAgo);
     p1Start.setFullYear(p1Start.getFullYear() - 1);
     const p1End = new Date(today);
     p1End.setFullYear(p1End.getFullYear() - 1);
 
-    document.getElementById('p1StartDate').valueAsDate = p1Start;
-    document.getElementById('p1EndDate').valueAsDate   = p1End;
+    const p1StartInput = document.getElementById('p1StartDate');
+    const p1EndInput = document.getElementById('p1EndDate');
+    const p2StartInput = document.getElementById('p2StartDate');
+    const p2EndInput = document.getElementById('p2EndDate');
 
-    // Dönem 2: aynı ay/gün, bu yıl (bir yıl sonrası)
-    document.getElementById('p2StartDate').valueAsDate = oneMonthAgo;
-    document.getElementById('p2EndDate').valueAsDate   = today;
+    if (p1StartInput) p1StartInput.valueAsDate = p1Start;
+    if (p1EndInput) p1EndInput.valueAsDate = p1End;
 
-    // Dönem 1 tarih değişince → Dönem 2'yi otomatik güncelle (aynı ay/gün, +1 yıl)
-    document.getElementById('p1StartDate').addEventListener('change', function() {
-        syncPeriod2Date('p1StartDate', 'p2StartDate');
-    });
-    document.getElementById('p1EndDate').addEventListener('change', function() {
-        syncPeriod2Date('p1EndDate', 'p2EndDate');
-    });
-    
-    // Dönem tipi değişikliğinde özel gün sayısını göster/gizle
-    document.getElementById('periodType').addEventListener('change', function() {
-        const customContainer = document.getElementById('customPeriodContainer');
-        const btnContainer = document.getElementById('btnFilterContainer');
-        if (this.value === 'custom') {
-            customContainer.style.display = 'block';
-            btnContainer.classList.remove('col-md-3');
-            btnContainer.classList.add('col-md-2');
-        } else {
-            customContainer.style.display = 'none';
-            btnContainer.classList.remove('col-md-2');
-            btnContainer.classList.add('col-md-3');
-        }
-    });
+    // Karşılaştırma Dönem 2 (Kıyas Dönemi: son 1 ay)
+    if (p2StartInput) p2StartInput.valueAsDate = oneMonthAgo;
+    if (p2EndInput) p2EndInput.valueAsDate = today;
 
-    // Sayfa açılışında durumu kontrol et
-    document.getElementById('periodType').dispatchEvent(new Event('change'));
-    
-    // Event listeners
-    document.getElementById('btnFilter').addEventListener('click', loadChartData);
-    document.getElementById('chartType').addEventListener('change', function() {
-        ChartModule.changeType(this.value);
-    });
-    document.getElementById('btnDownloadPng').addEventListener('click', () => ChartModule.download('png'));
-    document.getElementById('btnDownloadJpeg').addEventListener('click', () => ChartModule.download('jpeg'));
-    document.getElementById('pageSize').addEventListener('change', function() {
-        TableModule.setPageSize(parseInt(this.value));
-        loadTableData(1);
-    });
-    document.getElementById('btnExportCsv').addEventListener('click', exportCsv);
-    document.getElementById('btnExportExcel').addEventListener('click', exportExcel);
-    document.getElementById('btnCompare').addEventListener('click', loadComparisonData);
-    
-    // Tab değişikliği
+    // Dönem 1 değiştikçe Dönem 2'yi +1 yıl olarak senkronize et
+    if (p1StartInput) {
+        p1StartInput.addEventListener('change', function () {
+            syncPeriod2Date('p1StartDate', 'p2StartDate');
+        });
+    }
+    if (p1EndInput) {
+        p1EndInput.addEventListener('change', function () {
+            syncPeriod2Date('p1EndDate', 'p2EndDate');
+        });
+    }
+}
+
+// ── Event Listener Bağlantıları ──────────────────────────────────────────────
+
+function bindEventListeners() {
+    bind('btnFilter', 'click', loadChartData);
+
+    const chartTypeEl = document.getElementById('chartType');
+    if (chartTypeEl) {
+        chartTypeEl.addEventListener('change', function () {
+            ChartModule.changeType(this.value);
+        });
+    }
+
+    bind('btnDownloadPng', 'click', () => ChartModule.download('png'));
+    bind('btnDownloadJpeg', 'click', () => ChartModule.download('jpeg'));
+    bind('btnDownloadChartExcel', 'click', exportChartExcel);
+
+    const pageSizeEl = document.getElementById('pageSize');
+    if (pageSizeEl) {
+        pageSizeEl.addEventListener('change', function () {
+            TableModule.setPageSize(parseInt(this.value));
+            loadTableData(1);
+        });
+    }
+
+    bind('btnExportCsv', 'click', exportCsv);
+    bind('btnExportExcel', 'click', exportExcel);
+
+    // Karşılaştırma
+    bind('btnCompare', 'click', loadComparisonData);
+    bind('btnDownloadCompPng', 'click', () => ComparisonModule.downloadChart('png'));
+    bind('btnDownloadCompJpeg', 'click', () => ComparisonModule.downloadChart('jpeg'));
+    bind('btnDownloadCompExcel', 'click', exportComparisonExcel);
+
+    // Sekme Değişikliği
     document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
-        tab.addEventListener('shown.bs.tab', function(e) {
+        tab.addEventListener('shown.bs.tab', function (e) {
             const target = e.target.getAttribute('data-bs-target');
             if (target === '#table-tab') {
                 loadTableData(1);
             }
         });
     });
-    
-    // Popover'ları başlat (Uyarı Balonları)
-    const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-    popoverTriggerList.map(function (popoverTriggerEl) {
-        return new bootstrap.Popover(popoverTriggerEl);
-    });
 
-    // İlk yükleme
-    loadChartData();
-});
+    // Popover'lar (Bootstrap)
+    if (typeof bootstrap !== 'undefined' && bootstrap.Popover) {
+        const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+        popoverTriggerList.forEach(el => new bootstrap.Popover(el));
+    }
+}
+
+function bind(id, event, handler) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.addEventListener(event, handler);
+    }
+}
+
+// ── Validasyon Fonksiyonları (Requirements 2.8, 2.9, 2.10, 5.2) ──────────────
+
+function validateDateRange(startDateStr, endDateStr) {
+    if (!startDateStr || !endDateStr) {
+        showError('Lütfen başlangıç ve bitiş tarihlerini seçin');
+        return false;
+    }
+
+    const start = new Date(startDateStr);
+    const end = new Date(endDateStr);
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+
+    if (end < start) {
+        showError('Bitiş tarihi başlangıç tarihinden önce olamaz');
+        return false;
+    }
+
+    if (start > today || end > today) {
+        showError('Gelecek tarih seçilemez');
+        return false;
+    }
+
+    const diffTime = Math.abs(end - start);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays > 1826) { // 5 yıl (yaklaşık 1826 gün)
+        showError('Maksimum 5 yıllık zaman aralığı seçebilirsiniz');
+        return false;
+    }
+
+    return true;
+}
+
+function validateComparisonRanges(p1StartStr, p1EndStr, p2StartStr, p2EndStr) {
+    if (!p1StartStr || !p1EndStr || !p2StartStr || !p2EndStr) {
+        showError('Lütfen her iki dönemin de başlangıç ve bitiş tarihlerini doldurun');
+        return false;
+    }
+
+    if (!validateDateRange(p1StartStr, p1EndStr)) return false;
+    if (!validateDateRange(p2StartStr, p2EndStr)) return false;
+
+    const p1Start = new Date(p1StartStr);
+    const p1End = new Date(p1EndStr);
+    const p2Start = new Date(p2StartStr);
+    const p2End = new Date(p2EndStr);
+
+    // Dönemler örtüşemez kontrolü (Requirement 5.2)
+    if (p1Start <= p2End && p1End >= p2Start) {
+        showError('Dönemler örtüşemez');
+        return false;
+    }
+
+    return true;
+}
+
+// ── Veri Yükleme ─────────────────────────────────────────────────────────────
 
 async function loadChartData() {
-    currentFilters.dataType = document.getElementById('dataType').value;
-    currentFilters.startDate = document.getElementById('startDate').value;
-    currentFilters.endDate = document.getElementById('endDate').value;
-    currentFilters.periodType = document.getElementById('periodType').value;
-    currentFilters.customDays = document.getElementById('customDays') ? document.getElementById('customDays').value : 10;
+    const dataTypeEl = document.getElementById('dataType');
+    const startDateEl = document.getElementById('startDate');
+    const endDateEl = document.getElementById('endDate');
+    const periodTypeEl = document.getElementById('periodType');
 
-    if (!currentFilters.startDate || !currentFilters.endDate) {
-        showError('Lütfen başlangıç ve bitiş tarihlerini seçin');
+    if (!dataTypeEl || !startDateEl || !endDateEl) return;
+
+    currentFilters.dataType = dataTypeEl.value;
+    currentFilters.startDate = startDateEl.value;
+    currentFilters.endDate = endDateEl.value;
+    currentFilters.periodType = periodTypeEl ? periodTypeEl.value : 'monthly';
+
+    if (!validateDateRange(currentFilters.startDate, currentFilters.endDate)) {
         return;
     }
 
-    // YolcuUcak günlük/haftalık/özel desteklenmez
+    // Yolcu/Uçak istatistikleri aylık veya yıllık tutulur
     if (currentFilters.dataType === 'yolcuucak' &&
-        (currentFilters.periodType === 'daily' || currentFilters.periodType === 'weekly' || currentFilters.periodType === 'custom')) {
-        showError('Yolcu/Uçak istatistikleri için Günlük, Haftalık veya Özel dönem desteklenmez. Lütfen Aylık veya Yıllık seçin.');
+        (currentFilters.periodType === 'daily' || currentFilters.periodType === 'weekly')) {
+        showError('Yolcu/Uçak istatistikleri günlük veya haftalık gösterilemez. Lütfen Aylık veya Yıllık seçin.');
         return;
     }
+
+    saveFilters(currentFilters);
 
     try {
         const data = await ApiClient.post('/Reports/GetChartData', currentFilters);
-        if (!data.DataPoints || data.DataPoints.length === 0) {
+        if (!data || !data.DataPoints || data.DataPoints.length === 0) {
             showError('Seçilen tarih aralığında veri bulunamadı');
             ChartModule.destroy();
-            return;
+        } else {
+            const chartType = document.getElementById('chartType') ? document.getElementById('chartType').value : 'line';
+            ChartModule.create('reportChart', data.DataPoints, chartType);
+            showSuccess('Veriler güncellendi');
         }
-        ChartModule.create('reportChart', data.DataPoints, document.getElementById('chartType').value);
-        showSuccess('Grafik güncellendi');
+
+        const tablePane = document.getElementById('table-tab');
+        if (tablePane && tablePane.classList.contains('active')) {
+            loadTableData(1);
+        }
     } catch (error) {
         console.error('Chart load error:', error);
     }
@@ -131,7 +242,7 @@ async function loadTableData(page = 1, sortBy = null, sortDesc = false) {
         sortBy: sortBy,
         sortDesc: sortDesc
     };
-    
+
     try {
         const data = await ApiClient.post('/Reports/GetTableData', params);
         TableModule.render('tableContainer', data);
@@ -140,23 +251,29 @@ async function loadTableData(page = 1, sortBy = null, sortDesc = false) {
     }
 }
 
-// Global olarak erişilebilir olması için window'a ekle
 window.loadTableData = loadTableData;
 
 async function loadComparisonData() {
-    const dataType = document.getElementById('dataType').value;
-    const periodType = document.getElementById('periodType').value;
-    const customDays = document.getElementById('customDays') ? document.getElementById('customDays').value : 10;
-    const p1Start = document.getElementById('p1StartDate').value;
-    const p1End = document.getElementById('p1EndDate').value;
-    const p2Start = document.getElementById('p2StartDate').value;
-    const p2End = document.getElementById('p2EndDate').value;
-    
-    if (!p1Start || !p1End || !p2Start || !p2End) {
-        showError('Lütfen tüm tarih alanlarını doldurun');
+    const dataTypeEl = document.getElementById('dataType');
+    const periodTypeEl = document.getElementById('periodType');
+    const p1StartEl = document.getElementById('p1StartDate');
+    const p1EndEl = document.getElementById('p1EndDate');
+    const p2StartEl = document.getElementById('p2StartDate');
+    const p2EndEl = document.getElementById('p2EndDate');
+
+    if (!p1StartEl || !p1EndEl || !p2StartEl || !p2EndEl) return;
+
+    const dataType = dataTypeEl ? dataTypeEl.value : 'gunluk';
+    const periodType = periodTypeEl ? periodTypeEl.value : 'monthly';
+    const p1Start = p1StartEl.value;
+    const p1End = p1EndEl.value;
+    const p2Start = p2StartEl.value;
+    const p2End = p2EndEl.value;
+
+    if (!validateComparisonRanges(p1Start, p1End, p2Start, p2End)) {
         return;
     }
-    
+
     try {
         const data = await ApiClient.post('/Reports/GetComparisonData', {
             dataType: dataType,
@@ -164,18 +281,22 @@ async function loadComparisonData() {
             period1End: p1End,
             period2Start: p2Start,
             period2End: p2End,
-            periodType: periodType,
-            customDays: customDays
+            periodType: periodType
         });
-        
+
         ComparisonModule.renderTable('comparisonTable', data);
         ComparisonModule.renderChart('comparisonChart', data);
-        document.getElementById('comparisonResults').style.display = 'block';
-        showSuccess('Karşılaştırma tamamlandı');
+
+        const resultsEl = document.getElementById('comparisonResults');
+        if (resultsEl) resultsEl.style.display = 'block';
+
+        showSuccess('Karşılaştırma analizi tamamlandı');
     } catch (error) {
         console.error('Comparison error:', error);
     }
 }
+
+// ── Export İşlemleri ─────────────────────────────────────────────────────────
 
 function exportCsv() {
     ApiClient.download('/Reports/ExportCsv', currentFilters);
@@ -185,24 +306,74 @@ function exportExcel() {
     ApiClient.download('/Reports/ExportExcel', currentFilters);
 }
 
-// Dönem 1 tarihi değişince Dönem 2'yi aynı ay/gün, +1 yıl olarak güncelle
-function syncPeriod2Date(sourceId, targetId) {
-    const sourceVal = document.getElementById(sourceId).value;
-    if (!sourceVal) return;
+function exportChartExcel() {
+    const base64 = ChartModule.getBase64Image('png');
+    const selectEl = document.getElementById('dataType');
+    const title = selectEl ? selectEl.options[selectEl.selectedIndex].text : currentFilters.dataType;
 
-    const source = new Date(sourceVal);
+    ApiClient.download('/Reports/ExportChartExcel', {
+        ...currentFilters,
+        chartImageBase64: base64,
+        chartTitle: title
+    });
+}
+
+function exportComparisonExcel() {
+    const dataTypeEl = document.getElementById('dataType');
+    const periodTypeEl = document.getElementById('periodType');
+    const p1StartEl = document.getElementById('p1StartDate');
+    const p1EndEl = document.getElementById('p1EndDate');
+    const p2StartEl = document.getElementById('p2StartDate');
+    const p2EndEl = document.getElementById('p2EndDate');
+
+    if (!p1StartEl || !p1EndEl || !p2StartEl || !p2EndEl) return;
+
+    const base64 = ComparisonModule.getBase64Image('png');
+
+    ApiClient.download('/Reports/ExportComparisonExcel', {
+        dataType: dataTypeEl ? dataTypeEl.value : 'gunluk',
+        periodType: periodTypeEl ? periodTypeEl.value : 'monthly',
+        period1Start: p1StartEl.value,
+        period1End: p1EndEl.value,
+        period2Start: p2StartEl.value,
+        period2End: p2EndEl.value,
+        chartImageBase64: base64
+    });
+}
+
+// ── Yardımcı Fonksiyonlar ───────────────────────────────────────────────────
+
+function syncPeriod2Date(sourceId, targetId) {
+    const sourceEl = document.getElementById(sourceId);
+    const targetEl = document.getElementById(targetId);
+    if (!sourceEl || !targetEl || !sourceEl.value) return;
+
+    const source = new Date(sourceEl.value);
     if (isNaN(source.getTime())) return;
 
     const target = new Date(source);
     target.setFullYear(target.getFullYear() + 1);
 
-    // Gelecek tarih olmaması için kontrol
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     if (target > today) {
         target.setTime(today.getTime());
     }
 
-    // yyyy-MM-dd formatında ata
-    document.getElementById(targetId).value = target.toISOString().substring(0, 10);
+    targetEl.value = target.toISOString().substring(0, 10);
+}
+
+function saveFilters(filters) {
+    try {
+        localStorage.setItem('reportFilters', JSON.stringify(filters));
+    } catch (_) { }
+}
+
+function getSavedFilters() {
+    try {
+        const saved = localStorage.getItem('reportFilters');
+        return saved ? JSON.parse(saved) : null;
+    } catch (_) {
+        return null;
+    }
 }

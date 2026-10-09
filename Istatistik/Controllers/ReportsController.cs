@@ -106,7 +106,7 @@ namespace Istatistik.Controllers
             {
                 var service = CreateService();
                 var period = ParsePeriodType(periodType);
-                var data = service.GetAggregatedData(dataType, startDate, endDate, period);
+                var data = service.GetPagedTableData(dataType, startDate, endDate, period, 1, int.MaxValue, null, false);
                 var bytes = service.ExportToCsv(data, "rapor.csv");
                 return File(bytes, "text/csv", string.Format("rapor_{0}_{1}.csv", dataType, DateTime.Now.ToString("yyyyMMdd")));
             }
@@ -125,9 +125,52 @@ namespace Istatistik.Controllers
             {
                 var service = CreateService();
                 var period = ParsePeriodType(periodType);
-                var data = service.GetAggregatedData(dataType, startDate, endDate, period);
+                var data = service.GetPagedTableData(dataType, startDate, endDate, period, 1, int.MaxValue, null, false);
                 var bytes = service.ExportToExcel(data, "rapor.xlsx");
                 return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", string.Format("rapor_{0}_{1}.xlsx", dataType, DateTime.Now.ToString("yyyyMMdd")));
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+                return RedirectToAction("Index");
+            }
+        }
+
+        // Grafik görseli (base64) + veri tablosunu birlikte Excel'e aktarır
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ExportChartExcel(string dataType, DateTime startDate, DateTime endDate, string periodType, string chartImageBase64, string chartTitle)
+        {
+            try
+            {
+                var service = CreateService();
+                var period = ParsePeriodType(periodType);
+                var aggregated = service.GetAggregatedData(dataType, startDate, endDate, period);
+                var bytes = service.ExportToExcelWithChart(aggregated, chartImageBase64, chartTitle ?? dataType);
+                return File(bytes,
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    string.Format("grafik_{0}_{1}.xlsx", dataType, DateTime.Now.ToString("yyyyMMdd")));
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ExportComparisonExcel(string dataType, DateTime period1Start, DateTime period1End, DateTime period2Start, DateTime period2End, string periodType, string chartImageBase64)
+        {
+            try
+            {
+                var service = CreateService();
+                var period = ParsePeriodType(periodType);
+                var compResult = service.GetComparisonData(dataType, period1Start, period1End, period2Start, period2End, period);
+                var bytes = service.ExportComparisonExcel(compResult, chartImageBase64);
+                return File(bytes,
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    string.Format("karsilastirma_{0}_{1}.xlsx", dataType, DateTime.Now.ToString("yyyyMMdd")));
             }
             catch (Exception ex)
             {

@@ -10,6 +10,10 @@ const TableModule = (function() {
         
         if (!pagedResult.Rows || pagedResult.Rows.length === 0) {
             container.innerHTML = '<div class="alert alert-info">Gösterilecek veri yok</div>';
+            const pag = document.getElementById('tablePagination');
+            const sum = document.getElementById('tableSummary');
+            if (pag) pag.innerHTML = '';
+            if (sum) sum.innerHTML = '';
             return;
         }
         
@@ -27,8 +31,8 @@ const TableModule = (function() {
         
         pagedResult.Rows.forEach(row => {
             html += '<tr>';
-            for (const key in row) {
-                html += `<td>${row[key]}</td>`;
+            for (const key in firstRow) {
+                html += `<td>${escapeCell(row[key])}</td>`;
             }
             html += '</tr>';
         });
@@ -43,7 +47,7 @@ const TableModule = (function() {
                     html += `<td>${formatNumber(pagedResult.Summary[sumKey])}</td>`;
                 } else if (pagedResult.Summary["Toplam"] !== undefined && key === "Değer") {
                     html += `<td>${formatNumber(pagedResult.Summary["Toplam"])}</td>`;
-                } else if (key === 'Tarih') {
+                } else if (key === 'Tarih' || key === 'İşlem Tarihi') {
                     html += `<td>GENEL TOPLAM</td>`;
                 } else {
                     html += `<td></td>`;
@@ -139,6 +143,15 @@ const TableModule = (function() {
         return currentSort.desc ? '<i class="bi bi-arrow-down"></i>' : '<i class="bi bi-arrow-up"></i>';
     }
     
+    function escapeCell(value) {
+        if (value === null || value === undefined) return '';
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
     function setPageSize(size) {
         pageSize = size;
         currentPage = 1;

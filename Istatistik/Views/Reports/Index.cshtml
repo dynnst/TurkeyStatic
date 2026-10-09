@@ -128,18 +128,23 @@
             <div class="card mt-3">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Grafik Görünümü</h5>
-                    <div>
-                        <select id="chartType" class="form-select form-select-sm d-inline-block w-auto me-2">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <select id="chartType" class="form-select form-select-sm w-auto">
                             <option value="line">Çizgi Grafik</option>
                             <option value="bar">Sütun Grafik</option>
                             <option value="pie">Pasta Grafik</option>
                         </select>
-                        <button id="btnDownloadPng" class="btn btn-sm btn-outline-secondary me-1">
-                            <i class="bi bi-download"></i> PNG
-                        </button>
-                        <button id="btnDownloadJpeg" class="btn btn-sm btn-outline-secondary">
-                            <i class="bi bi-download"></i> JPEG
-                        </button>
+                        <div class="btn-group btn-group-sm">
+                            <button id="btnDownloadJpeg" class="btn btn-outline-secondary">
+                                <i class="bi bi-file-image"></i> JPEG
+                            </button>
+                            <button id="btnDownloadPng" class="btn btn-outline-secondary">
+                                <i class="bi bi-file-image"></i> PNG
+                            </button>
+                            <button id="btnDownloadChartExcel" class="btn btn-outline-success">
+                                <i class="bi bi-file-earmark-excel"></i> Excel
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div class="card-body" style="height: 500px;">
@@ -226,8 +231,24 @@
                     </div>
                     <div id="comparisonResults" style="display: none;">
                         <div id="comparisonTable"></div>
-                        <div class="mt-4" style="height: 400px;">
-                            <canvas id="comparisonChart"></canvas>
+                        <div class="card mt-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">Karşılaştırma Grafiği</h6>
+                                <div class="btn-group btn-group-sm">
+                                    <button id="btnDownloadCompJpeg" class="btn btn-outline-secondary">
+                                        <i class="bi bi-file-image"></i> JPEG
+                                    </button>
+                                    <button id="btnDownloadCompPng" class="btn btn-outline-secondary">
+                                        <i class="bi bi-file-image"></i> PNG
+                                    </button>
+                                    <button id="btnDownloadCompExcel" class="btn btn-outline-success">
+                                        <i class="bi bi-file-earmark-excel"></i> Excel
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body" style="height: 400px;">
+                                <canvas id="comparisonChart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>

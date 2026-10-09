@@ -167,7 +167,13 @@ namespace Istatistik.Services
             }
 
             // Özet hesapla
-            if (result.DataPoints.Any())
+            if (dt == "tahdit")
+            {
+                result.Summary["Toplam"] = result.DataPoints.Sum(p => p.Value);
+                result.Summary["Ekleme"] = result.DataPoints.Sum(p => MetricValue(p, "Ekleme"));
+                result.Summary["Kaldırma"] = result.DataPoints.Sum(p => MetricValue(p, "Kaldırma"));
+            }
+            else if (result.DataPoints.Any())
             {
                 var first = result.DataPoints.First();
                 if (first.Metrics != null && first.Metrics.Count > 0)
@@ -540,16 +546,61 @@ namespace Istatistik.Services
 
         private List<AggregatedDataPoint> AggregateTahdit(DateTime start, DateTime end, PeriodType periodType)
         {
-            var s = start.Date;
-            var e = end.Date;
+            var records = QueryTahditKayitlari(start, end);
 
-            var raw = _db.TahditKayitlari
-                .Where(x => x.Border == _border && x.Tarih >= s && x.Tarih <= e)
-                .ToList()
-                .Select(x => new RawDataPoint { Tarih = x.Tarih, Value = 1 })
+            IEnumerable<IGrouping<DateTime, TahditKayit>> groups;
+            Func<DateTime, string> labelFn;
+
+            if (periodType == PeriodType.Daily)
+            {
+                groups = records.GroupBy(x => x.Tarih.Date);
+                labelFn = d => d.ToString("dd.MM.yyyy");
+            }
+            else if (periodType == PeriodType.Weekly)
+            {
+                groups = records.GroupBy(x => GetWeekStartDate(x.Tarih));
+                labelFn = d => "Hafta: " + d.ToString("dd.MM.yyyy");
+            }
+            else if (periodType == PeriodType.Monthly)
+            {
+                groups = records.GroupBy(x => new DateTime(x.Tarih.Year, x.Tarih.Month, 1));
+                labelFn = d => d.ToString("MMM yyyy", TrCulture);
+            }
+            else
+            {
+                groups = records.GroupBy(x => new DateTime(x.Tarih.Year, 1, 1));
+                labelFn = d => d.Year.ToString();
+            }
+
+            return groups
+                .Select(g =>
+                {
+                    int ekleme = g.Count(x => x.IslemTuru == TahditIslemTuru.Ekleme);
+                    int kaldirma = g.Count(x => x.IslemTuru == TahditIslemTuru.Kaldirma);
+                    return new AggregatedDataPoint
+                    {
+                        Date = g.Key,
+                        Value = g.Count(),
+                        Label = labelFn(g.Key),
+                        Metrics = new Dictionary<string, decimal>
+                        {
+                            { "Ekleme", ekleme },
+                            { "Kaldırma", kaldirma }
+                        }
+                    };
+                })
+                .OrderBy(x => x.Date)
                 .ToList();
+        }
 
-            return AggregateByPeriod(raw, periodType);
+        private List<TahditKayit> QueryTahditKayitlari(DateTime start, DateTime end)
+        {
+            var s = start.Date;
+            var eExclusive = end.Date.AddDays(1);
+
+            return _db.TahditKayitlari
+                .Where(x => x.Border == _border && x.Tarih >= s && x.Tarih < eExclusive)
+                .ToList();
         }
 
         #endregion
@@ -640,6 +691,13 @@ namespace Istatistik.Services
             }
         }
 
+        private static decimal MetricValue(AggregatedDataPoint point, string key)
+        {
+            if (point == null || point.Metrics == null || !point.Metrics.ContainsKey(key))
+                return 0;
+            return point.Metrics[key];
+        }
+
         private DateTime GetWeekStartDate(DateTime date)
         {
             int diff = (7 + (date.DayOfWeek - DayOfWeek.Monday)) % 7;
@@ -684,10 +742,12 @@ namespace Istatistik.Services
                 Period2Summary = period2.Summary
             };
 
-            // Summary anahtarlarına göre fark metrikleri (her iki dönemdeki tüm anahtarlar)
-            var allKeys = period1.Summary.Keys.Union(period2.Summary.Keys).Distinct();
+            // Karşılaştırmada ortalama/maksimum gürültüsünü alma; varsa yalnızca toplamlar
+            var allKeys = period1.Summary.Keys.Union(period2.Summary.Keys).Distinct().ToList();
+            var totalKeys = allKeys.Where(k => k.EndsWith(" (Toplam)", StringComparison.Ordinal)).ToList();
+            var keysToCompare = totalKeys.Count > 0 ? (IEnumerable<string>)totalKeys : allKeys;
 
-            foreach (var key in allKeys)
+            foreach (var key in keysToCompare)
             {
                 var p1Val = period1.Summary.ContainsKey(key) ? period1.Summary[key] : 0m;
                 var p2Val = period2.Summary.ContainsKey(key) ? period2.Summary[key] : 0m;
@@ -701,9 +761,13 @@ namespace Istatistik.Services
                 else
                     pct = 0m;
 
+                var displayName = key.EndsWith(" (Toplam)", StringComparison.Ordinal)
+                    ? key.Substring(0, key.Length - " (Toplam)".Length)
+                    : key;
+
                 result.Differences.Add(new ComparisonMetric
                 {
-                    MetricName         = key,
+                    MetricName         = displayName,
                     Period1Value       = p1Val,
                     Period2Value       = p2Val,
                     AbsoluteDifference = diff,
@@ -726,6 +790,12 @@ namespace Istatistik.Services
             PeriodType periodType, int page, int pageSize,
             string sortBy, bool sortDesc)
         {
+            var dt = (dataType ?? "").ToLowerInvariant();
+            if (dt == "tahdit")
+                return GetPagedTahditRecords(startDate, endDate, page, pageSize, sortBy, sortDesc);
+            if (dt == "inad")
+                return GetPagedInadRecords(startDate, endDate, page, pageSize, sortBy, sortDesc);
+
             var aggregated = GetAggregatedData(dataType, startDate, endDate, periodType);
 
             IEnumerable<AggregatedDataPoint> sorted = aggregated.DataPoints;
@@ -776,55 +846,440 @@ namespace Istatistik.Services
             return result;
         }
 
+        private PagedTableResult GetPagedTahditRecords(DateTime startDate, DateTime endDate, int page, int pageSize, string sortBy, bool sortDesc)
+        {
+            ValidateDateRange(startDate, endDate);
+            ValidateDataTypeAccess("tahdit");
+
+            var list = QueryTahditKayitlari(startDate, endDate);
+            IEnumerable<TahditKayit> sorted = SortTahdit(list, sortBy, sortDesc);
+
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 25;
+
+            var totalRecords = list.Count;
+            var totalPages = pageSize > 0 ? (int)Math.Ceiling(totalRecords / (double)pageSize) : 1;
+            var paged = sorted.Skip((page - 1) * pageSize).Take(pageSize);
+
+            return new PagedTableResult
+            {
+                CurrentPage = page,
+                PageSize = pageSize,
+                TotalRecords = totalRecords,
+                TotalPages = totalPages,
+                Summary = new Dictionary<string, decimal>
+                {
+                    { "Kayıt Sayısı", totalRecords },
+                    { "Ekleme", list.Count(x => x.IslemTuru == TahditIslemTuru.Ekleme) },
+                    { "Kaldırma", list.Count(x => x.IslemTuru == TahditIslemTuru.Kaldirma) }
+                },
+                Rows = paged.Select(x => new Dictionary<string, object>
+                {
+                    { "İşlem Tarihi", x.Tarih.ToString("dd.MM.yyyy") },
+                    { "Adı Soyadı", x.AdSoyad ?? "" },
+                    { "Uyruk", x.Uyruk ?? "" },
+                    { "Doğum Tarihi", x.DogumTarihi.HasValue ? x.DogumTarihi.Value.ToString("dd.MM.yyyy") : "" },
+                    { "Pasaport / Kimlik No", x.PasaportVeyaKimlikNo ?? "" },
+                    { "İşlem", x.IslemTuru == TahditIslemTuru.Ekleme ? "Ekleme" : "Kaldırma" },
+                    { "Tahdit Kodu", x.TahditKodu ?? "" },
+                    { "Tahdit Nedeni", x.Neden ?? "" }
+                }).ToList()
+            };
+        }
+
+        private static IEnumerable<TahditKayit> SortTahdit(IEnumerable<TahditKayit> source, string sortBy, bool sortDesc)
+        {
+            Func<TahditKayit, object> key;
+            switch ((sortBy ?? "").Trim())
+            {
+                case "Adı Soyadı":
+                case "AdSoyad":
+                    key = x => x.AdSoyad ?? "";
+                    break;
+                case "Uyruk":
+                    key = x => x.Uyruk ?? "";
+                    break;
+                case "Doğum Tarihi":
+                case "DogumTarihi":
+                    key = x => x.DogumTarihi ?? DateTime.MinValue;
+                    break;
+                case "Pasaport / Kimlik No":
+                case "PasaportVeyaKimlikNo":
+                    key = x => x.PasaportVeyaKimlikNo ?? "";
+                    break;
+                case "İşlem":
+                case "IslemTuru":
+                    key = x => (int)x.IslemTuru;
+                    break;
+                case "Tahdit Kodu":
+                case "TahditKodu":
+                    key = x => x.TahditKodu ?? "";
+                    break;
+                case "Tahdit Nedeni":
+                case "Neden":
+                    key = x => x.Neden ?? "";
+                    break;
+                default:
+                    key = x => x.Tarih;
+                    break;
+            }
+
+            return sortDesc ? source.OrderByDescending(key) : source.OrderBy(key);
+        }
+
+        private PagedTableResult GetPagedInadRecords(DateTime startDate, DateTime endDate, int page, int pageSize, string sortBy, bool sortDesc)
+        {
+            ValidateDateRange(startDate, endDate);
+            ValidateDataTypeAccess("inad");
+
+            var s = startDate.Date;
+            var eExclusive = endDate.Date.AddDays(1);
+            var list = _db.InadYolcular
+                .Where(x => x.Border == _border && x.Tarih >= s && x.Tarih < eExclusive)
+                .ToList();
+
+            Func<InadYolcu, object> key;
+            switch ((sortBy ?? "").Trim())
+            {
+                case "Adı Soyadı":
+                case "AdSoyad":
+                    key = x => x.AdSoyad ?? "";
+                    break;
+                case "Uyruk":
+                    key = x => x.Uyruk ?? "";
+                    break;
+                case "Pasaport No":
+                case "PasaportNo":
+                    key = x => x.PasaportNo ?? "";
+                    break;
+                case "Havayolu":
+                case "HavayoluSirketi":
+                    key = x => x.HavayoluSirketi ?? "";
+                    break;
+                default:
+                    key = x => x.Tarih;
+                    break;
+            }
+
+            var sorted = sortDesc ? list.OrderByDescending(key) : list.OrderBy(key);
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 25;
+
+            var totalRecords = list.Count;
+            var totalPages = pageSize > 0 ? (int)Math.Ceiling(totalRecords / (double)pageSize) : 1;
+
+            return new PagedTableResult
+            {
+                CurrentPage = page,
+                PageSize = pageSize,
+                TotalRecords = totalRecords,
+                TotalPages = totalPages,
+                Summary = new Dictionary<string, decimal> { { "Kayıt Sayısı", totalRecords } },
+                Rows = sorted.Skip((page - 1) * pageSize).Take(pageSize).Select(x => new Dictionary<string, object>
+                {
+                    { "Tarih", x.Tarih.ToString("dd.MM.yyyy") },
+                    { "Sıra No", x.SiraNo },
+                    { "Adı Soyadı", x.AdSoyad ?? "" },
+                    { "Uyruk", x.Uyruk ?? "" },
+                    { "Doğum Tarihi", x.DogumTarihi.HasValue ? x.DogumTarihi.Value.ToString("dd.MM.yyyy") : "" },
+                    { "Pasaport No", x.PasaportNo ?? "" },
+                    { "Geliş Tarihi", x.GelisTarihi.HasValue ? x.GelisTarihi.Value.ToString("dd.MM.yyyy") : "" },
+                    { "Gidiş Tarihi", x.GidisTarihi.HasValue ? x.GidisTarihi.Value.ToString("dd.MM.yyyy") : "" },
+                    { "Geldiği Ülke", x.GeldigiUlke ?? "" },
+                    { "Gittiği Ülke", x.GittigiUlke ?? "" },
+                    { "Havayolu", x.HavayoluSirketi ?? "" },
+                    { "İNAD Gerekçesi", x.InadGerekcesi ?? "" },
+                    { "Açıklamalar", x.Aciklamalar ?? "" }
+                }).ToList()
+            };
+        }
+
         #endregion
 
         #region Export
 
-        public byte[] ExportToCsv(AggregatedDataResult data, string fileName)
+        public byte[] ExportToCsv(PagedTableResult data, string fileName)
         {
             var sb = new StringBuilder();
-            sb.AppendLine("Tarih;Etiket;Değer");
+            if (data == null || data.Rows == null || data.Rows.Count == 0)
+                return Encoding.UTF8.GetBytes("Veri yok");
 
-            foreach (var point in data.DataPoints)
-                sb.AppendLine(string.Format("{0};{1};{2}", point.Date.ToString("dd.MM.yyyy"), point.Label, point.Value));
+            var headers = data.Rows[0].Keys.ToList();
+            sb.AppendLine(string.Join(";", headers));
 
-            sb.AppendLine();
-            sb.AppendLine("Özet");
-            foreach (var kvp in data.Summary)
-                sb.AppendLine(string.Format("{0};{1}", kvp.Key, kvp.Value));
+            foreach (var row in data.Rows)
+            {
+                var cells = headers.Select(h => (row.ContainsKey(h) ? row[h] : null) == null ? "" : row[h].ToString().Replace(";", ","));
+                sb.AppendLine(string.Join(";", cells));
+            }
 
-            return Encoding.UTF8.GetBytes(sb.ToString());
+            if (data.Summary != null && data.Summary.Count > 0)
+            {
+                sb.AppendLine();
+                sb.AppendLine("Özet");
+                foreach (var kvp in data.Summary)
+                    sb.AppendLine(string.Format("{0};{1}", kvp.Key, kvp.Value));
+            }
+
+            var preamble = Encoding.UTF8.GetPreamble();
+            var contentBytes = Encoding.UTF8.GetBytes(sb.ToString());
+            var resultBytes = new byte[preamble.Length + contentBytes.Length];
+            Buffer.BlockCopy(preamble, 0, resultBytes, 0, preamble.Length);
+            Buffer.BlockCopy(contentBytes, 0, resultBytes, preamble.Length, contentBytes.Length);
+            return resultBytes;
         }
 
-        public byte[] ExportToExcel(AggregatedDataResult data, string fileName)
+        public byte[] ExportToExcel(PagedTableResult data, string fileName)
         {
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            ExcelPackage.License.SetNonCommercialOrganization("Emniyet");
 
             using (var package = new ExcelPackage())
             {
                 var ws = package.Workbook.Worksheets.Add("Rapor");
 
-                ws.Cells[1, 1].Value = "Tarih";
-                ws.Cells[1, 2].Value = "Etiket";
-                ws.Cells[1, 3].Value = "Değer";
+                if (data == null || data.Rows == null || data.Rows.Count == 0)
+                {
+                    ws.Cells[1, 1].Value = "Veri yok";
+                    return package.GetAsByteArray();
+                }
+
+                var headers = data.Rows[0].Keys.ToList();
+                for (int c = 0; c < headers.Count; c++)
+                    ws.Cells[1, c + 1].Value = headers[c];
 
                 int row = 2;
+                foreach (var item in data.Rows)
+                {
+                    for (int c = 0; c < headers.Count; c++)
+                    {
+                        object val;
+                        item.TryGetValue(headers[c], out val);
+                        ws.Cells[row, c + 1].Value = val;
+                    }
+                    row++;
+                }
+
+                if (data.Summary != null && data.Summary.Count > 0)
+                {
+                    row++;
+                    ws.Cells[row, 1].Value = "Özet";
+                    row++;
+                    foreach (var kvp in data.Summary)
+                    {
+                        ws.Cells[row, 1].Value = kvp.Key;
+                        ws.Cells[row, 2].Value = (double)kvp.Value;
+                        row++;
+                    }
+                }
+
+                ws.Cells.AutoFitColumns();
+                return package.GetAsByteArray();
+            }
+        }
+
+        #endregion
+
+        #region Excel + Grafik Export
+
+        /// <summary>
+        /// Canvas'tan alınan base64 görsel + veri tablosunu birlikte Excel'e gömer.
+        /// </summary>
+        public byte[] ExportToExcelWithChart(AggregatedDataResult data, string chartImageBase64, string chartTitle)
+        {
+            ExcelPackage.License.SetNonCommercialOrganization("Emniyet");
+
+            using (var package = new ExcelPackage())
+            {
+                var ws = package.Workbook.Worksheets.Add("Grafik Raporu");
+
+                // ── Başlık ──────────────────────────────────────────────
+                ws.Cells[1, 1].Value = chartTitle ?? data.DataType;
+                ws.Cells[1, 1].Style.Font.Bold = true;
+                ws.Cells[1, 1].Style.Font.Size = 14;
+                ws.Cells[1, 1, 1, 5].Merge = true;
+
+                ws.Cells[2, 1].Value = string.Format("Dönem: {0} – {1}",
+                    data.StartDate.ToString("dd.MM.yyyy"),
+                    data.EndDate.ToString("dd.MM.yyyy"));
+                ws.Cells[2, 1].Style.Font.Italic = true;
+                ws.Cells[2, 1, 2, 5].Merge = true;
+
+                // ── Grafik Görseli ───────────────────────────────────────
+                int imageEndRow = 3;
+                if (!string.IsNullOrWhiteSpace(chartImageBase64))
+                {
+                    try
+                    {
+                        var base64 = chartImageBase64;
+                        var commaIdx = base64.IndexOf(',');
+                        if (commaIdx >= 0) base64 = base64.Substring(commaIdx + 1);
+
+                        var imgBytes = Convert.FromBase64String(base64);
+                        var picture = ws.Drawings.AddPicture("Grafik",
+                            new System.IO.MemoryStream(imgBytes));
+                        picture.SetPosition(3, 0, 0, 0);   // 4. satırdan başla
+                        picture.SetSize(800, 380);
+                        imageEndRow = 25;
+                    }
+                    catch
+                    {
+                        imageEndRow = 4;
+                    }
+                }
+
+                // ── Veri Tablosu ─────────────────────────────────────────
+                int tableStart = imageEndRow + 2;
+
+                // Başlık satırı
+                ws.Cells[tableStart, 1].Value = "Tarih";
+                ws.Cells[tableStart, 2].Value = "Dönem";
+                ws.Cells[tableStart, 3].Value = "Değer";
+
+                using (var hdr = ws.Cells[tableStart, 1, tableStart, 3])
+                {
+                    hdr.Style.Font.Bold = true;
+                    hdr.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                    hdr.Style.Fill.BackgroundColor.SetColor(
+                        System.Drawing.Color.FromArgb(68, 114, 196));
+                    hdr.Style.Font.Color.SetColor(System.Drawing.Color.White);
+                }
+
+                int row = tableStart + 1;
                 foreach (var point in data.DataPoints)
                 {
                     ws.Cells[row, 1].Value = point.Date.ToString("dd.MM.yyyy");
                     ws.Cells[row, 2].Value = point.Label;
                     ws.Cells[row, 3].Value = (double)point.Value;
+
+                    if (row % 2 == 0)
+                    {
+                        using (var r = ws.Cells[row, 1, row, 3])
+                        {
+                            r.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                            r.Style.Fill.BackgroundColor.SetColor(
+                                System.Drawing.Color.FromArgb(235, 241, 250));
+                        }
+                    }
                     row++;
                 }
 
-                row++;
-                ws.Cells[row, 1].Value = "Özet";
-                row++;
-                foreach (var kvp in data.Summary)
+                // ── Özet ────────────────────────────────────────────────
+                if (data.Summary != null && data.Summary.Count > 0)
                 {
-                    ws.Cells[row, 1].Value = kvp.Key;
-                    ws.Cells[row, 2].Value = (double)kvp.Value;
                     row++;
+                    ws.Cells[row, 1].Value = "Özet";
+                    ws.Cells[row, 1].Style.Font.Bold = true;
+                    ws.Cells[row, 1, row, 3].Merge = true;
+                    row++;
+
+                    foreach (var kvp in data.Summary)
+                    {
+                        ws.Cells[row, 1].Value = kvp.Key;
+                        ws.Cells[row, 2].Value = (double)kvp.Value;
+                        ws.Cells[row, 1].Style.Font.Bold = true;
+                        row++;
+                    }
+                }
+
+                ws.Cells.AutoFitColumns();
+                return package.GetAsByteArray();
+            }
+        }
+
+        /// <summary>
+        /// Karşılaştırma sonuçlarını ve grafiğini Excel formatında dışa aktarır.
+        /// </summary>
+        public byte[] ExportComparisonExcel(ComparisonResult data, string chartImageBase64)
+        {
+            ExcelPackage.License.SetNonCommercialOrganization("Emniyet");
+
+            using (var package = new ExcelPackage())
+            {
+                var ws = package.Workbook.Worksheets.Add("Dönem Karşılaştırma");
+
+                // Başlık
+                ws.Cells[1, 1].Value = "Dönem Karşılaştırma Raporu - " + (data.DataType ?? "");
+                ws.Cells[1, 1].Style.Font.Bold = true;
+                ws.Cells[1, 1].Style.Font.Size = 14;
+                ws.Cells[1, 1, 1, 5].Merge = true;
+
+                ws.Cells[2, 1].Value = string.Format("Dönem 1: {0} – {1}  |  Dönem 2: {2} – {3}",
+                    data.Period1Start.ToString("dd.MM.yyyy"),
+                    data.Period1End.ToString("dd.MM.yyyy"),
+                    data.Period2Start.ToString("dd.MM.yyyy"),
+                    data.Period2End.ToString("dd.MM.yyyy"));
+                ws.Cells[2, 1].Style.Font.Italic = true;
+                ws.Cells[2, 1, 2, 5].Merge = true;
+
+                int imageEndRow = 3;
+                if (!string.IsNullOrWhiteSpace(chartImageBase64))
+                {
+                    try
+                    {
+                        var base64 = chartImageBase64;
+                        var commaIdx = base64.IndexOf(',');
+                        if (commaIdx >= 0) base64 = base64.Substring(commaIdx + 1);
+
+                        var imgBytes = Convert.FromBase64String(base64);
+                        var picture = ws.Drawings.AddPicture("KarsilastirmaGrafik",
+                            new System.IO.MemoryStream(imgBytes));
+                        picture.SetPosition(3, 0, 0, 0);
+                        picture.SetSize(750, 350);
+                        imageEndRow = 23;
+                    }
+                    catch
+                    {
+                        imageEndRow = 4;
+                    }
+                }
+
+                int tableStart = imageEndRow + 2;
+                ws.Cells[tableStart, 1].Value = "Metrik";
+                ws.Cells[tableStart, 2].Value = string.Format("Dönem 1 ({0:dd.MM.yyyy} - {1:dd.MM.yyyy})", data.Period1Start, data.Period1End);
+                ws.Cells[tableStart, 3].Value = string.Format("Dönem 2 ({0:dd.MM.yyyy} - {1:dd.MM.yyyy})", data.Period2Start, data.Period2End);
+                ws.Cells[tableStart, 4].Value = "Mutlak Fark";
+                ws.Cells[tableStart, 5].Value = "Değişim %";
+
+                using (var hdr = ws.Cells[tableStart, 1, tableStart, 5])
+                {
+                    hdr.Style.Font.Bold = true;
+                    hdr.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                    hdr.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(44, 62, 80));
+                    hdr.Style.Font.Color.SetColor(System.Drawing.Color.White);
+                }
+
+                int row = tableStart + 1;
+                if (data.Differences != null)
+                {
+                    foreach (var diff in data.Differences)
+                    {
+                        ws.Cells[row, 1].Value = diff.MetricName;
+                        ws.Cells[row, 2].Value = (double)diff.Period1Value;
+                        ws.Cells[row, 3].Value = (double)diff.Period2Value;
+                        ws.Cells[row, 4].Value = (double)diff.AbsoluteDifference;
+                        ws.Cells[row, 5].Value = diff.PercentageChange.HasValue ? string.Format("%{0:F2}", diff.PercentageChange.Value) : "∞";
+
+                        if (row % 2 == 0)
+                        {
+                            using (var r = ws.Cells[row, 1, row, 5])
+                            {
+                                r.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                                r.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(245, 247, 250));
+                            }
+                        }
+
+                        if (diff.Trend == TrendDirection.Up)
+                        {
+                            ws.Cells[row, 4, row, 5].Style.Font.Color.SetColor(System.Drawing.Color.Green);
+                            ws.Cells[row, 4, row, 5].Style.Font.Bold = true;
+                        }
+                        else if (diff.Trend == TrendDirection.Down)
+                        {
+                            ws.Cells[row, 4, row, 5].Style.Font.Color.SetColor(System.Drawing.Color.Red);
+                            ws.Cells[row, 4, row, 5].Style.Font.Bold = true;
+                        }
+                        row++;
+                    }
                 }
 
                 ws.Cells.AutoFitColumns();

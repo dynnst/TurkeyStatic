@@ -22,10 +22,24 @@ const ApiClient = (function() {
             });
             
             if (!response.ok) {
-                if (response.status === 403) {
-                    throw new Error('Bu işlem için yetkiniz yok');
+                let errorMsg = '';
+                try {
+                    const errData = await response.json();
+                    if (errData && errData.message) {
+                        errorMsg = errData.message;
+                    }
+                } catch (_) {}
+
+                if (!errorMsg) {
+                    if (response.status === 403) {
+                        errorMsg = 'Bu işlem için yetkiniz yok';
+                    } else if (response.status === 400) {
+                        errorMsg = 'Geçersiz parametre veya istek';
+                    } else {
+                        errorMsg = `İşlem sırasında bir hata oluştu (HTTP ${response.status})`;
+                    }
                 }
-                throw new Error(`HTTP ${response.status}`);
+                throw new Error(errorMsg);
             }
             
             const result = await response.json();
