@@ -59,6 +59,7 @@ namespace Istatistik.Controllers
 
             ViewBag.Border = user.Border;
             ViewBag.UserRole = user.Role;
+            ViewBag.CurrentUser = user;
             return View();
         }
 
@@ -71,6 +72,7 @@ namespace Istatistik.Controllers
 
             ViewBag.Border = user.Border;
             ViewBag.UserRole = user.Role;
+            ViewBag.CurrentUser = user;
             return View();
         }
 

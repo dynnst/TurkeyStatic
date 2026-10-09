@@ -36,22 +36,16 @@ namespace Istatistik.Services
 
         private void ValidateDataTypeAccess(string dataType)
         {
+            if (string.IsNullOrWhiteSpace(dataType))
+                throw new ArgumentException("Lütfen geçerli bir veri türü seçin.");
+
             if (_user.IsSuperAdmin || _user.IsUnitAdmin) return;
 
-            var dt = (dataType ?? "").ToLowerInvariant();
-            if (dt.StartsWith("bilgitek_"))
+            var dt = dataType.Trim().ToLowerInvariant();
+            if (dt.StartsWith("bilgitek_") || dt.StartsWith("cctv_"))
             {
                 if (!_user.CanAccessBureau(BureauCodes.BilgiTeknolojileri))
-                    throw new UnauthorizedAccessException("Bilgi Teknolojileri bürosu verileri için yetkiniz yok.");
-                return;
-            }
-            if (dt.StartsWith("cctv_"))
-            {
-                // CCTV bürosu kodu var mı kontrol et (varsayalım CCTV ayrı bir büro koduna sahip veya BilgiTeknolojileri altında)
-                // BureauCodes içinde CCTV yoksa BilgiTeknolojileri sayabiliriz veya yeni bir kod ekleyebiliriz.
-                // Eğer ayrı büro değilse herkes görebilir mantığı kalabilir ama genelde Bilgi Teknolojileri bakar.
-                if (!_user.CanAccessBureau(BureauCodes.BilgiTeknolojileri)) // Varsa BureauCodes.Cctv eklenebilir
-                    throw new UnauthorizedAccessException("CCTV verileri için yetkiniz yok.");
+                    throw new UnauthorizedAccessException("Bilgi Teknolojileri ve CCTV verileri için yetkiniz yok.");
                 return;
             }
             if (dt.StartsWith("trafik_"))
@@ -96,12 +90,14 @@ namespace Istatistik.Services
                     throw new UnauthorizedAccessException("Seyahat belgesi risk verileri için yetkiniz yok.");
                 return;
             }
-            if (dt.StartsWith("pasaport_"))
+            if (dt.StartsWith("pasaport_") || dt == "yolcuucak" || dt == "gunluk" || dt == "inad" || dt == "tahdit" || dt == "haftalik")
             {
                 if (!_user.CanAccessBureau(BureauCodes.Pasaport))
                     throw new UnauthorizedAccessException("Pasaport bürosu verileri için yetkiniz yok.");
                 return;
             }
+
+            throw new UnauthorizedAccessException("Bu veri türüne erişim yetkiniz bulunmamaktadır.");
         }
 
         #endregion

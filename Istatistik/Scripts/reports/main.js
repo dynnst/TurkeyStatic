@@ -1,7 +1,7 @@
 // Main.js - Raporlama ve Görselleştirme Orkestrasyonu
 
 let currentFilters = {
-    dataType: 'yolcuucak',
+    dataType: '',
     startDate: '',
     endDate: '',
     periodType: 'monthly'
@@ -35,11 +35,21 @@ function initFiltersAndDates() {
     if (saved && startDateInput && endDateInput) {
         if (saved.startDate) startDateInput.value = saved.startDate;
         if (saved.endDate) endDateInput.value = saved.endDate;
-        if (saved.dataType && dataTypeSelect) dataTypeSelect.value = saved.dataType;
+        if (saved.dataType && dataTypeSelect) {
+            // Sadece kullanıcının yetkili olduğu mevcut seçeneklerde varsa geri yükle
+            const optionExists = Array.from(dataTypeSelect.options).some(o => o.value === saved.dataType);
+            if (optionExists) {
+                dataTypeSelect.value = saved.dataType;
+            }
+        }
         if (saved.periodType && periodTypeSelect) periodTypeSelect.value = saved.periodType;
     } else {
         if (startDateInput) startDateInput.valueAsDate = oneMonthAgo;
         if (endDateInput) endDateInput.valueAsDate = today;
+    }
+
+    if (dataTypeSelect && dataTypeSelect.value) {
+        currentFilters.dataType = dataTypeSelect.value;
     }
 
     // Karşılaştırma Dönem 1 (Baz Dönem: 1 yıl önce)
@@ -194,7 +204,12 @@ async function loadChartData() {
     const endDateEl = document.getElementById('endDate');
     const periodTypeEl = document.getElementById('periodType');
 
-    if (!dataTypeEl || !startDateEl || !endDateEl) return;
+    if (!dataTypeEl || !dataTypeEl.value) {
+        showError('Yetkili olduğunuz bir veri türü bulunmamaktadır veya seçim yapılmadı.');
+        return;
+    }
+
+    if (!startDateEl || !endDateEl) return;
 
     currentFilters.dataType = dataTypeEl.value;
     currentFilters.startDate = startDateEl.value;
@@ -235,6 +250,10 @@ async function loadChartData() {
 }
 
 async function loadTableData(page = 1, sortBy = null, sortDesc = false) {
+    if (!currentFilters.dataType) {
+        return;
+    }
+
     const params = {
         ...currentFilters,
         page: page,
@@ -261,9 +280,14 @@ async function loadComparisonData() {
     const p2StartEl = document.getElementById('p2StartDate');
     const p2EndEl = document.getElementById('p2EndDate');
 
+    if (!dataTypeEl || !dataTypeEl.value) {
+        showError('Yetkili olduğunuz bir veri türü bulunmamaktadır veya seçim yapılmadı.');
+        return;
+    }
+
     if (!p1StartEl || !p1EndEl || !p2StartEl || !p2EndEl) return;
 
-    const dataType = dataTypeEl ? dataTypeEl.value : 'gunluk';
+    const dataType = dataTypeEl.value;
     const periodType = periodTypeEl ? periodTypeEl.value : 'monthly';
     const p1Start = p1StartEl.value;
     const p1End = p1EndEl.value;
@@ -299,17 +323,29 @@ async function loadComparisonData() {
 // ── Export İşlemleri ─────────────────────────────────────────────────────────
 
 function exportCsv() {
+    if (!currentFilters.dataType) {
+        showError('Yetkili olduğunuz bir veri türü bulunmamaktadır.');
+        return;
+    }
     ApiClient.download('/Reports/ExportCsv', currentFilters);
 }
 
 function exportExcel() {
+    if (!currentFilters.dataType) {
+        showError('Yetkili olduğunuz bir veri türü bulunmamaktadır.');
+        return;
+    }
     ApiClient.download('/Reports/ExportExcel', currentFilters);
 }
 
 function exportChartExcel() {
+    if (!currentFilters.dataType) {
+        showError('Yetkili olduğunuz bir veri türü bulunmamaktadır.');
+        return;
+    }
     const base64 = ChartModule.getBase64Image('png');
     const selectEl = document.getElementById('dataType');
-    const title = selectEl ? selectEl.options[selectEl.selectedIndex].text : currentFilters.dataType;
+    const title = (selectEl && selectEl.selectedIndex >= 0) ? selectEl.options[selectEl.selectedIndex].text : currentFilters.dataType;
 
     ApiClient.download('/Reports/ExportChartExcel', {
         ...currentFilters,
@@ -326,12 +362,17 @@ function exportComparisonExcel() {
     const p2StartEl = document.getElementById('p2StartDate');
     const p2EndEl = document.getElementById('p2EndDate');
 
+    if (!dataTypeEl || !dataTypeEl.value) {
+        showError('Yetkili olduğunuz bir veri türü bulunmamaktadır veya seçim yapılmadı.');
+        return;
+    }
+
     if (!p1StartEl || !p1EndEl || !p2StartEl || !p2EndEl) return;
 
     const base64 = ComparisonModule.getBase64Image('png');
 
     ApiClient.download('/Reports/ExportComparisonExcel', {
-        dataType: dataTypeEl ? dataTypeEl.value : 'gunluk',
+        dataType: dataTypeEl.value,
         periodType: periodTypeEl ? periodTypeEl.value : 'monthly',
         period1Start: p1StartEl.value,
         period1End: p1EndEl.value,

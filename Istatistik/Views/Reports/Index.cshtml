@@ -1,6 +1,19 @@
-﻿@{
+@using Istatistik.Models
+@using Istatistik.Services
+@{
     ViewBag.Title = "İstatistik Raporları";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var currentUser = ViewBag.CurrentUser as CurrentUser ?? CurrentUser.FromSession(Session);
+    bool canPasaport = currentUser == null || currentUser.CanAccessBureau(BureauCodes.Pasaport);
+    bool canBilgiTek = currentUser == null || currentUser.CanAccessBureau(BureauCodes.BilgiTeknolojileri);
+    bool canTrafik   = currentUser == null || currentUser.CanAccessBureau(BureauCodes.Trafik);
+    bool canGbtUyap  = currentUser == null || currentUser.CanAccessBureau(BureauCodes.GbtUyap);
+    bool canYts      = currentUser == null || currentUser.CanAccessBureau(BureauCodes.YtsSorgu);
+    bool canIdari    = currentUser == null || currentUser.CanAccessBureau(BureauCodes.Idari);
+    bool canGuvenlik = currentUser == null || currentUser.CanAccessBureau(BureauCodes.Guvenlik);
+    bool canSucOnleme = currentUser == null || currentUser.CanAccessBureau(BureauCodes.SucOnleme);
+    bool canSeyahat  = currentUser == null || currentUser.CanAccessBureau(BureauCodes.SeyahatBelgeRisk);
+    bool hasAnyBureau = canPasaport || canBilgiTek || canTrafik || canGbtUyap || canYts || canIdari || canGuvenlik || canSucOnleme || canSeyahat;
 }
 
 <div class="container-fluid mt-4">
@@ -25,44 +38,91 @@
                         <div class="col-md-3">
                             <label for="dataType" class="form-label">Veri Türü</label>
                             <select id="dataType" class="form-select">
-    <optgroup label="Pasaport">
-        <option value="yolcuucak">Yolcu/Uçak İstatistikleri</option>
-        <option value="gunluk">Günlük Zaman Serisi</option>
-        <option value="inad">İNAD Kayıtları</option>
-        <option value="tahdit">Tahdit Kayıtları</option>
-        <option value="haftalik">Haftalık Olay Çizelgesi</option>
-    </optgroup>
-    <optgroup label="Bilgi Teknolojileri">
-        <option value="bilgitek_KameraKaydiIncelemesi">Kamera Kaydı İncelemesi</option>
-        <option value="bilgitek_PtsAracAraniyor">PTS Araç Aranıyor</option>
-        <option value="bilgitek_PtsAracCalinti">PTS Araç Çalıntı</option>
-        <option value="bilgitek_PtsPlakaCalinti">PTS Plaka Çalıntı</option>
-        <option value="bilgitek_PtsPlakaKayip">PTS Plaka Kayıp</option>
-        <option value="bilgitek_TahditBakilanSorunluYolcu">Tahdit Bakılan Sorunlu Yolcu</option>
-        <option value="bilgitek_YurdaGirisCikisBelgeTalebi">Giriş/Çıkış Belge Talebi</option>
-        <option value="bilgitek_TahditEkleme">Tahdit Ekleme</option>
-        <option value="bilgitek_TahditKaldirma">Tahdit Kaldırma</option>
-    </optgroup>
-    <optgroup label="CCTV">
-        <option value="cctv_IpSabit">IP Sabit Kamera</option>
-        <option value="cctv_IpHareketli">IP Hareketli Kamera</option>
-        <option value="cctv_AnalogSabit">Analog Sabit Kamera</option>
-        <option value="cctv_AnalogHareketli">Analog Hareketli Kamera</option>
-    </optgroup>
-    <optgroup label="Trafik">
-        <option value="trafik_KontrolEdilenAracSayisi">Kontrol Edilen Araç</option>
-        <option value="trafik_CezaYazilanSurucuSayisi">Ceza Yazılan Sürücü</option>
-        <option value="trafik_TrafiktenMenEdilenAracSayisi">Trafikten Men Edilen Araç</option>
-        <option value="trafik_GeciciGeriAlinanSurucuBelgesi">Geri Alınan Sürücü Belgesi</option>
-    </optgroup>
-    <optgroup label="GBT / UYAP">
-        <option value="gbtuyap_SorgulananKisiSayisi">Sorgulanan Kişi</option>
-        <option value="gbtuyap_YakalananKisiSayisi">Yakalanan Kişi</option>
-    </optgroup>
-    <optgroup label="YTS Sorgu">
-        <option value="ytssorgu_GunlukSorguSayisi">Günlük Sorgu Sayısı</option>
-    </optgroup>
-</select>
+                                @if (!hasAnyBureau)
+                                {
+                                    <option value="" disabled selected>Yetkili olduğunuz bir büro bulunamadı</option>
+                                }
+                                @if (canPasaport)
+                                {
+                                    <optgroup label="Pasaport">
+                                        <option value="yolcuucak">Yolcu/Uçak İstatistikleri</option>
+                                        <option value="gunluk">Günlük Zaman Serisi</option>
+                                        <option value="inad">İNAD Kayıtları</option>
+                                        <option value="tahdit">Tahdit Kayıtları</option>
+                                        <option value="haftalik">Haftalık Olay Çizelgesi</option>
+                                    </optgroup>
+                                }
+                                @if (canBilgiTek)
+                                {
+                                    <optgroup label="Bilgi Teknolojileri">
+                                        <option value="bilgitek_KameraKaydiIncelemesi">Kamera Kaydı İncelemesi</option>
+                                        <option value="bilgitek_PtsAracAraniyor">PTS Araç Aranıyor</option>
+                                        <option value="bilgitek_PtsAracCalinti">PTS Araç Çalıntı</option>
+                                        <option value="bilgitek_PtsPlakaCalinti">PTS Plaka Çalıntı</option>
+                                        <option value="bilgitek_PtsPlakaKayip">PTS Plaka Kayıp</option>
+                                        <option value="bilgitek_TahditBakilanSorunluYolcu">Tahdit Bakılan Sorunlu Yolcu</option>
+                                        <option value="bilgitek_YurdaGirisCikisBelgeTalebi">Giriş/Çıkış Belge Talebi</option>
+                                        <option value="bilgitek_TahditEkleme">Tahdit Ekleme</option>
+                                        <option value="bilgitek_TahditKaldirma">Tahdit Kaldırma</option>
+                                    </optgroup>
+                                    <optgroup label="CCTV">
+                                        <option value="cctv_IpSabit">IP Sabit Kamera</option>
+                                        <option value="cctv_IpHareketli">IP Hareketli Kamera</option>
+                                        <option value="cctv_AnalogSabit">Analog Sabit Kamera</option>
+                                        <option value="cctv_AnalogHareketli">Analog Hareketli Kamera</option>
+                                    </optgroup>
+                                }
+                                @if (canTrafik)
+                                {
+                                    <optgroup label="Trafik">
+                                        <option value="trafik_KontrolEdilenAracSayisi">Kontrol Edilen Araç</option>
+                                        <option value="trafik_CezaYazilanSurucuSayisi">Ceza Yazılan Sürücü</option>
+                                        <option value="trafik_TrafiktenMenEdilenAracSayisi">Trafikten Men Edilen Araç</option>
+                                        <option value="trafik_GeciciGeriAlinanSurucuBelgesi">Geri Alınan Sürücü Belgesi</option>
+                                    </optgroup>
+                                }
+                                @if (canGbtUyap)
+                                {
+                                    <optgroup label="GBT / UYAP">
+                                        <option value="gbtuyap_SorgulananKisiSayisi">Sorgulanan Kişi</option>
+                                        <option value="gbtuyap_YakalananKisiSayisi">Yakalanan Kişi</option>
+                                    </optgroup>
+                                }
+                                @if (canYts)
+                                {
+                                    <optgroup label="YTS Sorgu">
+                                        <option value="ytssorgu_GunlukSorguSayisi">Günlük Sorgu Sayısı</option>
+                                    </optgroup>
+                                }
+                                @if (canIdari)
+                                {
+                                    <optgroup label="İdari Büro">
+                                        <option value="idari_GelenEvrak">Gelen Evrak</option>
+                                        <option value="idari_GidenEvrak">Giden Evrak</option>
+                                        <option value="idari_ToplamPersonelSayisi">Toplam Personel</option>
+                                        <option value="idari_IdariBuroPersonelSayisi">İdari Büro Personeli</option>
+                                    </optgroup>
+                                }
+                                @if (canGuvenlik)
+                                {
+                                    <optgroup label="Güvenlik Hizmetleri">
+                                        <option value="guvenlik_GirisYapanArac">Giriş Yapan Araç</option>
+                                        <option value="guvenlik_KontrolEdilenArac">Kontrol Edilen Araç</option>
+                                    </optgroup>
+                                }
+                                @if (canSucOnleme)
+                                {
+                                    <optgroup label="Suç Önleme">
+                                        <option value="suconleme_VakaSayisi">Vaka Sayısı</option>
+                                    </optgroup>
+                                }
+                                @if (canSeyahat)
+                                {
+                                    <optgroup label="Seyahat Belgesi Risk">
+                                        <option value="seyahat_IslemSayisi">İşlem Sayısı</option>
+                                    </optgroup>
+                                }
+                            </select>
                         </div>
                         <div class="col-md-2">
                             <label for="startDate" class="form-label">Başlangıç Tarihi</label>
